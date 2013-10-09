@@ -11,17 +11,17 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.12.1</version>
+    <version>5.12.3</version>
   </parent>
 
   <build>
     <resources>
-      <resource>
+      <!--resource>
         <directory>src/main/resources</directory>
         <includes>
           <include>**/*.*</include>
         </includes>
-      </resource>
+      </resource-->
     </resources>
   </build>
 
