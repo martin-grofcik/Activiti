@@ -103,7 +103,7 @@ public class ProcessInstanceQueryImpl extends AbstractVariableQueryImpl<ProcessI
   @Override
   public ProcessInstanceQuery processDefinitionName(String processDefinitionName) {
     if (processDefinitionName == null) {
-      throw new ActivitiIllegalArgumentException("Process definition name is null");
+	  throw new ActivitiIllegalArgumentException("Process definition name is null");
     }
     this.processDefinitionName = processDefinitionName;
     return this;

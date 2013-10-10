@@ -14,7 +14,7 @@ package org.activiti.workflow.simple.alfresco.model;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="type")
+@XmlRootElement(name="type", namespace="http://www.alfresco.org/model/dictionary/1.0")
 public class M2Type extends M2Class {
 
 }

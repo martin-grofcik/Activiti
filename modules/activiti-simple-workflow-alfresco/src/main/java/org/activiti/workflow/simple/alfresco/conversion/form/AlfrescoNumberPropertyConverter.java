@@ -12,14 +12,16 @@
  */
 package org.activiti.workflow.simple.alfresco.conversion.form;
 
-import org.activiti.workflow.simple.alfresco.configmodel.Form;
-import org.activiti.workflow.simple.alfresco.configmodel.FormField;
-import org.activiti.workflow.simple.alfresco.configmodel.FormFieldControl;
 import org.activiti.workflow.simple.alfresco.conversion.AlfrescoConversionConstants;
 import org.activiti.workflow.simple.alfresco.conversion.AlfrescoConversionUtil;
+import org.activiti.workflow.simple.alfresco.model.M2Aspect;
 import org.activiti.workflow.simple.alfresco.model.M2Mandatory;
+import org.activiti.workflow.simple.alfresco.model.M2Model;
 import org.activiti.workflow.simple.alfresco.model.M2Property;
 import org.activiti.workflow.simple.alfresco.model.M2Type;
+import org.activiti.workflow.simple.alfresco.model.config.Form;
+import org.activiti.workflow.simple.alfresco.model.config.FormField;
+import org.activiti.workflow.simple.alfresco.model.config.FormFieldControl;
 import org.activiti.workflow.simple.converter.WorkflowDefinitionConversion;
 import org.activiti.workflow.simple.definition.form.FormPropertyDefinition;
 import org.activiti.workflow.simple.definition.form.NumberPropertyDefinition;
@@ -43,9 +45,22 @@ public class AlfrescoNumberPropertyConverter implements AlfrescoFormPropertyConv
 		property.setName(propertyName);
 		property.setPropertyType(AlfrescoConversionConstants.PROPERTY_TYPE_DOUBLE);
 		
+		M2Model model = AlfrescoConversionUtil.getContentModel(conversion);
+		M2Aspect aspect = model.getAspect(propertyName);
+		if(aspect != null) {
+			// In case the "shared" aspect doesn't have the actual property set yet, we
+			// do this here
+			if(aspect.getProperties().isEmpty()) {
+				aspect.getProperties().add(property);
+			}
+			contentType.getMandatoryAspects().add(propertyName);
+		} else {
+			contentType.getProperties().add(property);
+		}
+		
 		// Add form configuration
 		form.getFormFieldVisibility().addShowFieldElement(propertyName);
-		FormField formField = form.getFormAppearance().addFormField(propertyName, property.getTitle(), formSet);
+		FormField formField = form.getFormAppearance().addFormField(propertyName, propertyDefinition.getName(), formSet);
 
 		if(numberPropertyDefinition.isWritable()) {
 			// Read-only properties should always be rendered using an info-template
