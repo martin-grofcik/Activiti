@@ -75,13 +75,6 @@ public class ExecutionQueryImpl extends AbstractVariableQueryImpl<ExecutionQuery
     return this;
   }
 
-    if (processDefinitionKey == null) {
-      throw new ActivitiIllegalArgumentException("Process definition key is null");
-    }
-    this.processDefinitionKey = processDefinitionKey;
-    return this;
-  }
-
   @Override
   public ExecutionQuery processDefinitionName(String processDefinitionName) {
     if (processDefinitionName == null) {
@@ -301,8 +294,5 @@ public class ExecutionQueryImpl extends AbstractVariableQueryImpl<ExecutionQuery
   }
   public String getParentId() {
     return parentId;
-  }
-  public String getProcessDefinitionName() {
-      return processDefinitionName;
   }
 }

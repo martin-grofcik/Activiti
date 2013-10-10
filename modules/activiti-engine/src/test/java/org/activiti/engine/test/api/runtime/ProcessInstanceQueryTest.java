@@ -35,8 +35,6 @@ public class ProcessInstanceQueryTest extends PluggableActivitiTestCase {
   private static String PROCESS_DEFINITION_NAME = "oneTaskProcessName";
   private static String PROCESS_DEFINITION_NAME_2 = "oneTaskProcess2Name";
 
-  private static String PROCESS_DEFINITION_NAME = "oneTaskProcessName";
-  private static String PROCESS_DEFINITION_NAME_2 = "oneTaskProcess2Name";
   private List<String> processInstanceIds;
 
   /**
@@ -125,15 +123,7 @@ public class ProcessInstanceQueryTest extends PluggableActivitiTestCase {
     assertEquals(2, runtimeService.createProcessInstanceQuery().processInstanceBusinessKey("1").count());
   }
 
-  public void testQueryByProcessDefinitionName() {
-    assertEquals(4, runtimeService.createProcessInstanceQuery().processDefinitionName(PROCESS_DEFINITION_NAME).count());
-    assertEquals(1, runtimeService.createProcessInstanceQuery().processDefinitionName(PROCESS_DEFINITION_NAME_2).count());
-    assertEquals(0, runtimeService.createProcessInstanceQuery().processDefinitionName("invalid").count());
-    assertEquals(null, runtimeService.createProcessInstanceQuery().processDefinitionName("invalid").singleResult());
-  }
-
-
-    public void testQueryByInvalidBusinessKey() {
+  public void testQueryByInvalidBusinessKey() {
     assertEquals(0, runtimeService.createProcessInstanceQuery().processInstanceBusinessKey("invalid").count());
 
     try {

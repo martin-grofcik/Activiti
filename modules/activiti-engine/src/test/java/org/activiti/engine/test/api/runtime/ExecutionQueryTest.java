@@ -50,9 +50,6 @@ public class ExecutionQueryTest extends PluggableActivitiTestCase {
   private static String CONCURRENT_PROCESS_NAME = "concurrentName";
   private static String SEQUENTIAL_PROCESS_NAME = "oneTaskProcessName";
 
-  private static String CONCURRENT_PROCESS_NAME = "concurrentName";
-  private static String SEQUENTIAL_PROCESS_NAME = "oneTaskProcessName";
-
   private List<String> concurrentProcessInstanceIds;
   private List<String> sequentialProcessInstanceIds;
 
@@ -90,15 +87,6 @@ public class ExecutionQueryTest extends PluggableActivitiTestCase {
     assertNull(query.singleResult());
     assertEquals(0, query.list().size());
     assertEquals(0, query.count());
-  }
-
-  public void testQueryByProcessInstanceId() {
-    for (String processInstanceId : concurrentProcessInstanceIds) {
-      ExecutionQuery query =  runtimeService.createExecutionQuery().processInstanceId(processInstanceId);
-      assertEquals(3, query.list().size());
-      assertEquals(3, query.count());
-    }
-    assertEquals(1, runtimeService.createExecutionQuery().processInstanceId(sequentialProcessInstanceIds.get(0)).list().size());
   }
 
   public void testQueryByProcessDefinitionName() {

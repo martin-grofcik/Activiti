@@ -42,11 +42,7 @@ public interface ProcessInstanceQuery extends Query<ProcessInstanceQuery, Proces
   /** Select process instances whose process definition name is processDefinitionName*/
   ProcessInstanceQuery processDefinitionName(String processDefinitionName);
 
-
-  /** Select process instances whose process definition name is processDefinitionName*/
-  ProcessInstanceQuery processDefinitionName(String processDefinitionName);
-
-    /**
+  /**
    * Select the process instances which are defined by a process definition with
    * the given key.
    */
