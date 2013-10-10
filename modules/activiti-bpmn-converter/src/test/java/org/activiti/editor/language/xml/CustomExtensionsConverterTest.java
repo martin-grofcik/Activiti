@@ -8,20 +8,14 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import org.activiti.bpmn.model.ActivitiListener;
-import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.bpmn.model.ExtensionAttribute;
-import org.activiti.bpmn.model.ExtensionElement;
-import org.activiti.bpmn.model.FieldExtension;
-import org.activiti.bpmn.model.FlowElement;
-import org.activiti.bpmn.model.ImplementationType;
-import org.activiti.bpmn.model.ServiceTask;
+import org.activiti.bpmn.model.*;
+import org.activiti.bpmn.model.Process;
 import org.junit.Test;
 
 public class CustomExtensionsConverterTest extends AbstractConverterTest {
 
   @Test
-  public void connvertXMLToModel() throws Exception {
+  public void convertXMLToModel() throws Exception {
     BpmnModel bpmnModel = readXMLFile();
     validateModel(bpmnModel);
   }
@@ -39,6 +33,20 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
   }
   
   private void validateModel(BpmnModel model) {
+    Process process = model.getMainProcess();
+    assertNotNull(process.getAttributes());
+    assertEquals(4, process.getAttributes().size());
+    List<ExtensionAttribute> attributes = process.getAttributes().get("version");
+    assertNotNull(attributes);
+    assertEquals(1, attributes.size());
+    ExtensionAttribute attribute = attributes.get(0);
+    //custom:version = "9"
+    assertNotNull(attribute);
+    assertEquals("http://custom.org/bpmn", attribute.getNamespace());
+    assertEquals("custom", attribute.getNamespacePrefix());
+    assertEquals("version", attribute.getName());
+    assertEquals("9", attribute.getValue());
+
     FlowElement flowElement = model.getMainProcess().getFlowElement("servicetask");
     assertNotNull(flowElement);
     assertTrue(flowElement instanceof ServiceTask);
@@ -84,9 +92,9 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
     assertEquals("http://custom.org/bpmn", extensionElement.getNamespace());
     assertEquals(2, extensionElement.getAttributes().size());
     
-    List<ExtensionAttribute> attributes = extensionElement.getAttributes().get("id");
+    attributes = extensionElement.getAttributes().get("id");
     assertEquals(1, attributes.size());
-    ExtensionAttribute attribute = attributes.get(0);
+    attribute = attributes.get(0);
     assertNotNull(attribute);
     assertEquals("id", attribute.getName());
     assertEquals("test", attribute.getValue());
