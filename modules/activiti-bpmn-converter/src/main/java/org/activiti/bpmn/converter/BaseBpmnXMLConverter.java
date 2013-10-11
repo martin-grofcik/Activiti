@@ -283,18 +283,9 @@ public abstract class BaseBpmnXMLConverter implements BpmnXMLConstants {
     if (StringUtils.isNotEmpty(xtr.getPrefix())) {
       extensionElement.setNamespacePrefix(xtr.getPrefix());
     }
-    
-    for (int i = 0; i < xtr.getAttributeCount(); i++) {
-      ExtensionAttribute extensionAttribute = new ExtensionAttribute();
-      extensionAttribute.setName(xtr.getAttributeLocalName(i));
-      extensionAttribute.setValue(xtr.getAttributeValue(i));
-      extensionAttribute.setNamespace(xtr.getAttributeNamespace(i));
-      if (StringUtils.isNotEmpty(xtr.getAttributePrefix(i))) {
-        extensionAttribute.setNamespacePrefix(xtr.getAttributePrefix(i));
-      }
-      extensionElement.addAttribute(extensionAttribute);
-    }
-    
+
+    BpmnXMLUtil.addCustomAttributes(xtr, extensionElement);
+
     boolean readyWithExtensionElement = false;
     while (readyWithExtensionElement == false && xtr.hasNext()) {
       xtr.next();
@@ -311,7 +302,7 @@ public abstract class BaseBpmnXMLConverter implements BpmnXMLConstants {
     }
     return extensionElement;
   }
-  
+
   protected boolean parseAsync(XMLStreamReader xtr) {
     boolean async = false;
     String asyncString = xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_ACTIVITY_ASYNCHRONOUS);
