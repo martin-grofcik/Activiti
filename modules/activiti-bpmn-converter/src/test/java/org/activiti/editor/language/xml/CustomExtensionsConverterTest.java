@@ -8,8 +8,25 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import org.activiti.bpmn.model.*;
+import org.activiti.bpmn.model.ActivitiListener;
+import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.ExtensionAttribute;
+import org.activiti.bpmn.model.ExtensionElement;
+import org.activiti.bpmn.model.FieldExtension;
+import org.activiti.bpmn.model.FlowElement;
+import org.activiti.bpmn.model.ImplementationType;
+import org.activiti.bpmn.model.ServiceTask;
 import org.activiti.bpmn.model.Process;
+import org.activiti.bpmn.model.ActivitiListener;
+import org.activiti.bpmn.model.BoundaryEvent;
+import org.activiti.bpmn.model.BpmnModel;
+import org.activiti.bpmn.model.ExtensionAttribute;
+import org.activiti.bpmn.model.ExtensionElement;
+import org.activiti.bpmn.model.FieldExtension;
+import org.activiti.bpmn.model.FlowElement;
+import org.activiti.bpmn.model.ImplementationType;
+import org.activiti.bpmn.model.ServiceTask;
+import org.activiti.bpmn.model.TimerEventDefinition;
 import org.junit.Test;
 
 public class CustomExtensionsConverterTest extends AbstractConverterTest {
@@ -47,6 +64,11 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
     assertEquals("version", attribute.getName());
     assertEquals("9", attribute.getValue());
 
+    List<ActivitiListener> listeners = model.getMainProcess().getExecutionListeners();
+    validateExecutionListeners(listeners);
+    Map<String, List<ExtensionElement>> extensionElementMap = model.getMainProcess().getExtensionElements();
+    validateExtensionElements(extensionElementMap);
+    
     FlowElement flowElement = model.getMainProcess().getFlowElement("servicetask");
     assertNotNull(flowElement);
     assertTrue(flowElement instanceof ServiceTask);
@@ -64,7 +86,22 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
     assertEquals("testField2", field.getFieldName());
     assertEquals("${test}", field.getExpression());
     
-    List<ActivitiListener> listeners = serviceTask.getExecutionListeners();
+    listeners = serviceTask.getExecutionListeners();
+    validateExecutionListeners(listeners);
+    
+    extensionElementMap = serviceTask.getExtensionElements();
+    validateExtensionElements(extensionElementMap);
+    
+    assertEquals(1, serviceTask.getBoundaryEvents().size());
+    BoundaryEvent boundaryEvent = serviceTask.getBoundaryEvents().get(0);
+    assertEquals("timerEvent", boundaryEvent.getId());
+    assertEquals(1, boundaryEvent.getEventDefinitions().size());
+    assertTrue(boundaryEvent.getEventDefinitions().get(0) instanceof TimerEventDefinition);
+    extensionElementMap = boundaryEvent.getEventDefinitions().get(0).getExtensionElements();
+    validateExtensionElements(extensionElementMap);
+  }
+  
+  protected void validateExecutionListeners(List<ActivitiListener> listeners) {
     assertEquals(3, listeners.size());
     ActivitiListener listener = (ActivitiListener) listeners.get(0);
     assertTrue(ImplementationType.IMPLEMENTATION_TYPE_CLASS.equals(listener.getImplementationType()));
@@ -78,8 +115,9 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
     assertTrue(ImplementationType.IMPLEMENTATION_TYPE_DELEGATEEXPRESSION.equals(listener.getImplementationType()));
     assertEquals("${delegateExpression}", listener.getImplementation());
     assertEquals("start", listener.getEvent());
-    
-    Map<String, List<ExtensionElement>> extensionElementMap = serviceTask.getExtensionElements();
+  }
+  
+  protected void validateExtensionElements(Map<String, List<ExtensionElement>> extensionElementMap ) {
     assertEquals(1, extensionElementMap.size());
     
     List<ExtensionElement> extensionElements = extensionElementMap.get("test");
@@ -92,9 +130,9 @@ public class CustomExtensionsConverterTest extends AbstractConverterTest {
     assertEquals("http://custom.org/bpmn", extensionElement.getNamespace());
     assertEquals(2, extensionElement.getAttributes().size());
     
-    attributes = extensionElement.getAttributes().get("id");
+    List<ExtensionAttribute> attributes = extensionElement.getAttributes().get("id");
     assertEquals(1, attributes.size());
-    attribute = attributes.get(0);
+    ExtensionAttribute attribute = attributes.get(0);
     assertNotNull(attribute);
     assertEquals("id", attribute.getName());
     assertEquals("test", attribute.getValue());
