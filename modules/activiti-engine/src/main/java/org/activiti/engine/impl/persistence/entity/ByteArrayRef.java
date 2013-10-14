@@ -83,9 +83,11 @@ public final class ByteArrayRef implements Serializable {
           .getByteArrayEntityManager()
           .deleteByteArrayById(id);
       }
-      id = null;
-      entity = null;
-      name = null;
+      // Variable byte array handling has changed dramatically in 5.13.
+      // to allow backward compatibility with 5.12.X we should comment following lines
+//      id = null;
+//      entity = null;
+//      name = null;
     }
   }
   
