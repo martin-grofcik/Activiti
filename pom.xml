@@ -886,20 +886,22 @@
         </build>
     </profile>
   </profiles>
-  
-  <!--distributionManagement>
-    <snapshotRepository>
-      <id>alfresco.snapshot.repo</id>
-      <url>https://maven.alfresco.com/nexus/content/repositories/activiti-snapshots/</url>
-      <uniqueVersion>false</uniqueVersion>
-    </snapshotRepository>
-    <repository>
-      <id>alfresco.release.repo</id>
-      <url>https://artifacts.alfresco.com/nexus/content/repositories/activiti-releases/</url>
-    </repository>
-  </distributionManagement-->
 
-  <!-- Various information, not used by the build -->
+    <distributionManagement>
+        <repository>
+            <id>edorasware-mirror</id>
+            <name>Repository for deployment of releases</name>
+            <url>${edorasware-deploy-path-releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>edorasware-mirror</id>
+            <name>Repository for deployment of snapshots</name>
+            <url>${edorasware-deploy-path-snapshots}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+    <!-- Various information, not used by the build -->
 
   <url>http://activiti.org</url>
   <licenses>
