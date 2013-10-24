@@ -887,7 +887,7 @@
     </profile>
   </profiles>
   
-  <distributionManagement>
+  <!--distributionManagement>
     <snapshotRepository>
       <id>alfresco.snapshot.repo</id>
       <url>https://maven.alfresco.com/nexus/content/repositories/activiti-snapshots/</url>
@@ -897,7 +897,7 @@
       <id>alfresco.release.repo</id>
       <url>https://artifacts.alfresco.com/nexus/content/repositories/activiti-releases/</url>
     </repository>
-  </distributionManagement>
+  </distributionManagement-->
 
   <!-- Various information, not used by the build -->
 
