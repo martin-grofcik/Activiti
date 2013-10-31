@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.workflow.simple.alfresco.conversion.script.PropertyReference;
 import org.activiti.workflow.simple.alfresco.conversion.script.ScriptTaskListenerBuilder;
 import org.activiti.workflow.simple.alfresco.model.M2Model;
 import org.activiti.workflow.simple.alfresco.model.M2Namespace;
@@ -38,7 +39,7 @@ public class AlfrescoConversionUtil implements AlfrescoConversionConstants {
 	 */
 	public static String getValidIdString(String s) {
 		if(s != null) {
-			return s.toLowerCase().replace(" ", "").replace("_", "");
+			return s.toLowerCase().replace(" ", "").replace("_", "").replace("-", "_");
 		}
 		return null;
 	}
@@ -56,6 +57,10 @@ public class AlfrescoConversionUtil implements AlfrescoConversionConstants {
 	public static M2Namespace createNamespace(String prefix) {
 		String uri  = MessageFormat.format(CONTENT_MODEL_NAMESPACE_URL, prefix);
 		return new M2Namespace(uri, prefix);
+	}
+	
+	public static String getUrlQualifiedPropertyName(String prefixedProperty, M2Namespace nameSpace) {
+		return "{" + nameSpace.getUri() + "}" + prefixedProperty.replace(nameSpace.getPrefix() +":", "");
 	}
 	
 	// Artifact related methods
@@ -81,6 +86,11 @@ public class AlfrescoConversionUtil implements AlfrescoConversionConstants {
 	
 	public static String getModelNamespacePrefix(WorkflowDefinitionConversion conversion) {
 		return (String) conversion.getArtifact(ARTIFACT_MODEL_NAMESPACE_PREFIX);
+	}
+	
+	@SuppressWarnings("unchecked")
+  public static List<PropertyReference> getPropertyReferences(WorkflowDefinitionConversion conversion) {
+		return (List<PropertyReference>) conversion.getArtifact(ARTIFACT_PROPERTY_REFERENCES);
 	}
 	
 	/**
