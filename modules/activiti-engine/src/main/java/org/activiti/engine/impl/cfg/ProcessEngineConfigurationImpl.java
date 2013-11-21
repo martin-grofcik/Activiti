@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.naming.InitialContext;
@@ -39,6 +40,10 @@ import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.delegate.event.ActivitiEventDispatcher;
+import org.activiti.engine.delegate.event.ActivitiEventListener;
+import org.activiti.engine.delegate.event.ActivitiEventType;
+import org.activiti.engine.delegate.event.impl.ActivitiEventDispatcherImpl;
 import org.activiti.engine.form.AbstractFormType;
 import org.activiti.engine.impl.FormServiceImpl;
 import org.activiti.engine.impl.HistoryServiceImpl;
@@ -110,7 +115,7 @@ import org.activiti.engine.impl.form.JuelFormEngine;
 import org.activiti.engine.impl.form.LongFormType;
 import org.activiti.engine.impl.form.StringFormType;
 import org.activiti.engine.impl.history.HistoryLevel;
-import org.activiti.engine.impl.history.HistoryManager;
+import org.activiti.engine.impl.history.DefaultHistoryManager;
 import org.activiti.engine.impl.history.parse.FlowNodeHistoryParseHandler;
 import org.activiti.engine.impl.history.parse.ProcessHistoryParseHandler;
 import org.activiti.engine.impl.history.parse.StartEventHistoryParseHandler;
@@ -129,7 +134,6 @@ import org.activiti.engine.impl.jobexecutor.CallerRunsRejectedJobsHandler;
 import org.activiti.engine.impl.jobexecutor.DefaultFailedJobCommandFactory;
 import org.activiti.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.activiti.engine.impl.jobexecutor.FailedJobCommandFactory;
-import org.activiti.engine.impl.jobexecutor.JobExecutor;
 import org.activiti.engine.impl.jobexecutor.JobHandler;
 import org.activiti.engine.impl.jobexecutor.ProcessEventJobHandler;
 import org.activiti.engine.impl.jobexecutor.RejectedJobsHandler;
@@ -138,6 +142,7 @@ import org.activiti.engine.impl.jobexecutor.TimerCatchIntermediateEventJobHandle
 import org.activiti.engine.impl.jobexecutor.TimerExecuteNestedActivityJobHandler;
 import org.activiti.engine.impl.jobexecutor.TimerStartEventJobHandler;
 import org.activiti.engine.impl.jobexecutor.TimerSuspendProcessDefinitionHandler;
+import org.activiti.engine.impl.persistence.DefaultHistoryManagerSessionFactory;
 import org.activiti.engine.impl.persistence.GenericManagerFactory;
 import org.activiti.engine.impl.persistence.GroupEntityManagerFactory;
 import org.activiti.engine.impl.persistence.MembershipEntityManagerFactory;
@@ -356,6 +361,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected int batchSizeProcessInstances = 25;
   protected int batchSizeTasks = 25;
   
+  protected boolean enableEventDispatcher = true;
+  protected ActivitiEventDispatcher eventDispatcher;
+  protected List<ActivitiEventListener> eventListeners;
+  protected Map<String, List<ActivitiEventListener>> typedEventListeners;
+  
   // buildProcessEngine ///////////////////////////////////////////////////////
   
   public ProcessEngine buildProcessEngine() {
@@ -389,6 +399,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     initDelegateInterceptor();
     initEventHandlers();
     initFailedJobCommandFactory();
+    initEventDispatcher();
     initConfigurators();
   }
 
@@ -695,7 +706,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       addSessionFactory(new GenericManagerFactory(TaskEntityManager.class));
       addSessionFactory(new GenericManagerFactory(VariableInstanceEntityManager.class));
       addSessionFactory(new GenericManagerFactory(EventSubscriptionEntityManager.class));
-      addSessionFactory(new GenericManagerFactory(HistoryManager.class));
+      
+      addSessionFactory(new DefaultHistoryManagerSessionFactory());
       
       addSessionFactory(new UserEntityManagerFactory());
       addSessionFactory(new GroupEntityManagerFactory());
@@ -1135,6 +1147,33 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     if (beans == null) {
       beans = new HashMap<Object, Object>();
     }
+  }
+  
+  protected void initEventDispatcher() {
+  	if(this.eventDispatcher == null) {
+  		this.eventDispatcher = new ActivitiEventDispatcherImpl();
+  	}
+  	
+  	this.eventDispatcher.setEnabled(enableEventDispatcher);
+  	
+  	if(eventListeners != null) {
+  		for(ActivitiEventListener listenerToAdd : eventListeners) {
+  			this.eventDispatcher.addEventListener(listenerToAdd);
+  		}
+  	}
+  	
+  	if(typedEventListeners != null) {
+  		for(Entry<String, List<ActivitiEventListener>> listenersToAdd : typedEventListeners.entrySet()) {
+  			// Extract types from the given string
+  			ActivitiEventType[] types = ActivitiEventType.getTypesFromString(listenersToAdd.getKey());
+  			
+  			for(ActivitiEventListener listenerToAdd : listenersToAdd.getValue()) {
+  				this.eventDispatcher.addEventListener(listenerToAdd, types);
+  			}
+  		}
+  	}
+  	
+  	
   }
 
   // getters and setters //////////////////////////////////////////////////////
@@ -1723,5 +1762,25 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   public ProcessEngineConfigurationImpl setEnableSafeBpmnXml(boolean enableSafeBpmnXml) {
     this.enableSafeBpmnXml = enableSafeBpmnXml;
     return this;
+  }
+  
+  public ActivitiEventDispatcher getEventDispatcher() {
+	  return eventDispatcher;
+  }
+  
+  public void setEventDispatcher(ActivitiEventDispatcher eventDispatcher) {
+	  this.eventDispatcher = eventDispatcher;
+  }
+  
+  public void setEnableEventDispatcher(boolean enableEventDispatcher) {
+	  this.enableEventDispatcher = enableEventDispatcher;
+  }
+  
+  public void setTypedEventListeners(Map<String, List<ActivitiEventListener>> typedListeners) {
+	  this.typedEventListeners = typedListeners;
+  }
+  
+  public void setEventListeners(List<ActivitiEventListener> eventListeners) {
+	  this.eventListeners = eventListeners;
   }
 }
