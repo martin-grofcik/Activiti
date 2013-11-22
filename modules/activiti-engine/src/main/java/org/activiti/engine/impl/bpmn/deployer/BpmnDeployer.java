@@ -125,8 +125,9 @@ public class BpmnDeployer implements Deployer {
     ProcessDefinitionEntityManager processDefinitionManager = commandContext.getProcessDefinitionEntityManager();
     DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
     for (ProcessDefinitionEntity processDefinition : processDefinitions) {
-      
-      if (deployment.isNew()) {
+        List<TimerEntity> timers = new ArrayList<TimerEntity>();
+
+        if (deployment.isNew()) {
         int processDefinitionVersion;
 
         ProcessDefinitionEntity latestProcessDefinition = processDefinitionManager.findLatestProcessDefinitionByKey(processDefinition.getKey());
@@ -140,26 +141,26 @@ public class BpmnDeployer implements Deployer {
         processDefinition.setDeploymentId(deployment.getId());
 
         String nextId = idGenerator.getNextId();
-        String processDefinitionId = processDefinition.getKey() 
+        String processDefinitionId = processDefinition.getKey()
           + ":" + processDefinition.getVersion()
           + ":" + nextId; // ACT-505
-                   
+
         // ACT-115: maximum id length is 64 charcaters
-        if (processDefinitionId.length() > 64) {          
-          processDefinitionId = nextId; 
+        if (processDefinitionId.length() > 64) {
+          processDefinitionId = nextId;
         }
         processDefinition.setId(processDefinitionId);
 
         removeObsoleteTimers(processDefinition);
-        addTimerDeclarations(processDefinition);
-        
+        addTimerDeclarations(processDefinition, timers);
+
         removeObsoleteMessageEventSubscriptions(processDefinition, latestProcessDefinition);
         addMessageEventSubscriptions(processDefinition);
 
         dbSqlSession.insert(processDefinition);
         addAuthorizations(processDefinition);
 
-        
+        scheduleTimers( timers);
       } else {
         String deploymentId = deployment.getId();
         processDefinition.setDeploymentId(deploymentId);
@@ -175,23 +176,29 @@ public class BpmnDeployer implements Deployer {
         .getDeploymentManager()
         .getProcessDefinitionCache()
         .add(processDefinition.getId(), processDefinition);
-      
+
       // Add to deployment for further usage
       deployment.addDeployedArtifact(processDefinition);
     }
   }
 
-  @SuppressWarnings("unchecked")
-  protected void addTimerDeclarations(ProcessDefinitionEntity processDefinition) {
+  private void scheduleTimers(List<TimerEntity> timers) {
+    for (TimerEntity timer : timers) {
+      Context
+        .getCommandContext()
+        .getJobEntityManager()
+        .schedule(timer);
+    }
+  }
+
+    @SuppressWarnings("unchecked")
+  protected void addTimerDeclarations(ProcessDefinitionEntity processDefinition, List<TimerEntity> timers) {
     List<TimerDeclarationImpl> timerDeclarations = (List<TimerDeclarationImpl>) processDefinition.getProperty(BpmnParse.PROPERTYNAME_START_TIMER);
     if (timerDeclarations!=null) {
       for (TimerDeclarationImpl timerDeclaration : timerDeclarations) {
         TimerEntity timer = timerDeclaration.prepareTimerEntity(null);
         timer.setProcessDefinitionId(processDefinition.getId());
-        Context
-          .getCommandContext()
-          .getJobEntityManager()
-          .schedule(timer);
+        timers.add(timer);
       }
     }
   }
