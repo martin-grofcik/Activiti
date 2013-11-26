@@ -47,7 +47,7 @@ public class TestActivitiEntityEventListener implements ActivitiEventListener {
 
 	@Override
 	public boolean isFailOnException() {
-		return false;
+		return true;
 	}
 
 }
