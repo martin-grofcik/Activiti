@@ -24,7 +24,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
@@ -39,6 +41,10 @@ import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.delegate.event.ActivitiEventDispatcher;
+import org.activiti.engine.delegate.event.ActivitiEventListener;
+import org.activiti.engine.delegate.event.ActivitiEventType;
+import org.activiti.engine.delegate.event.impl.ActivitiEventDispatcherImpl;
 import org.activiti.engine.form.AbstractFormType;
 import org.activiti.engine.impl.FormServiceImpl;
 import org.activiti.engine.impl.HistoryServiceImpl;
@@ -110,7 +116,6 @@ import org.activiti.engine.impl.form.JuelFormEngine;
 import org.activiti.engine.impl.form.LongFormType;
 import org.activiti.engine.impl.form.StringFormType;
 import org.activiti.engine.impl.history.HistoryLevel;
-import org.activiti.engine.impl.history.HistoryManager;
 import org.activiti.engine.impl.history.parse.FlowNodeHistoryParseHandler;
 import org.activiti.engine.impl.history.parse.ProcessHistoryParseHandler;
 import org.activiti.engine.impl.history.parse.StartEventHistoryParseHandler;
@@ -129,7 +134,6 @@ import org.activiti.engine.impl.jobexecutor.CallerRunsRejectedJobsHandler;
 import org.activiti.engine.impl.jobexecutor.DefaultFailedJobCommandFactory;
 import org.activiti.engine.impl.jobexecutor.DefaultJobExecutor;
 import org.activiti.engine.impl.jobexecutor.FailedJobCommandFactory;
-import org.activiti.engine.impl.jobexecutor.JobExecutor;
 import org.activiti.engine.impl.jobexecutor.JobHandler;
 import org.activiti.engine.impl.jobexecutor.ProcessEventJobHandler;
 import org.activiti.engine.impl.jobexecutor.RejectedJobsHandler;
@@ -138,6 +142,7 @@ import org.activiti.engine.impl.jobexecutor.TimerCatchIntermediateEventJobHandle
 import org.activiti.engine.impl.jobexecutor.TimerExecuteNestedActivityJobHandler;
 import org.activiti.engine.impl.jobexecutor.TimerStartEventJobHandler;
 import org.activiti.engine.impl.jobexecutor.TimerSuspendProcessDefinitionHandler;
+import org.activiti.engine.impl.persistence.DefaultHistoryManagerSessionFactory;
 import org.activiti.engine.impl.persistence.GenericManagerFactory;
 import org.activiti.engine.impl.persistence.GroupEntityManagerFactory;
 import org.activiti.engine.impl.persistence.MembershipEntityManagerFactory;
@@ -285,6 +290,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   
   protected SqlSessionFactory sqlSessionFactory;
   protected TransactionFactory transactionFactory;
+  
+  protected Set<Class<?>> customMybatisMappers;
 
   // ID GENERATOR /////////////////////////////////////////////////////////////
   
@@ -356,6 +363,11 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected int batchSizeProcessInstances = 25;
   protected int batchSizeTasks = 25;
   
+  protected boolean enableEventDispatcher = true;
+  protected ActivitiEventDispatcher eventDispatcher;
+  protected List<ActivitiEventListener> eventListeners;
+  protected Map<String, List<ActivitiEventListener>> typedEventListeners;
+  
   // buildProcessEngine ///////////////////////////////////////////////////////
   
   public ProcessEngine buildProcessEngine() {
@@ -389,6 +401,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     initDelegateInterceptor();
     initEventHandlers();
     initFailedJobCommandFactory();
+    initEventDispatcher();
     initConfigurators();
   }
 
@@ -594,14 +607,14 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       log.debug("using database type: {}", databaseType);
 
     } catch (SQLException e) {
-      e.printStackTrace();
+      log.error("Exception while initializing Database connection", e);
     } finally {
       try {
         if (connection!=null) {
           connection.close();
         }
       } catch (SQLException e) {
-        e.printStackTrace();
+          log.error("Exception while closing the Database connection", e);
       }
     }
   }
@@ -641,6 +654,13 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
         Configuration configuration = parser.getConfiguration();
         configuration.setEnvironment(environment);
         configuration.getTypeHandlerRegistry().register(VariableType.class, JdbcType.VARCHAR, new IbatisVariableTypeHandler());
+        
+        if (getCustomMybatisMappers() != null) {
+        	for (Class<?> clazz : getCustomMybatisMappers()) {
+        		configuration.addMapper(clazz);
+        	}
+        }
+        
         configuration = parser.parse();
 
         sqlSessionFactory = new DefaultSqlSessionFactory(configuration);
@@ -656,9 +676,18 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected InputStream getMyBatisXmlConfigurationSteam() {
     return ReflectUtil.getResourceAsStream(DEFAULT_MYBATIS_MAPPING_FILE);
   }
+  
+  public Set<Class<?>> getCustomMybatisMappers() {
+	return customMybatisMappers;
+  }
 
+  public void setCustomMybatisMappers(Set<Class<?>> customMybatisMappers) {
+	this.customMybatisMappers = customMybatisMappers;
+  }
+  
   // session factories ////////////////////////////////////////////////////////
   
+
   protected void initSessionFactories() {
     if (sessionFactories==null) {
       sessionFactories = new HashMap<Class<?>, SessionFactory>();
@@ -695,7 +724,8 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
       addSessionFactory(new GenericManagerFactory(TaskEntityManager.class));
       addSessionFactory(new GenericManagerFactory(VariableInstanceEntityManager.class));
       addSessionFactory(new GenericManagerFactory(EventSubscriptionEntityManager.class));
-      addSessionFactory(new GenericManagerFactory(HistoryManager.class));
+      
+      addSessionFactory(new DefaultHistoryManagerSessionFactory());
       
       addSessionFactory(new UserEntityManagerFactory());
       addSessionFactory(new GroupEntityManagerFactory());
@@ -949,7 +979,9 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   // history //////////////////////////////////////////////////////////////////
   
   public void initHistoryLevel() {
-    historyLevel = HistoryLevel.getHistoryLevelForKey(getHistory());
+  	if(historyLevel == null) {
+  		historyLevel = HistoryLevel.getHistoryLevelForKey(getHistory());
+  	}
   }
   
   // id generator /////////////////////////////////////////////////////////////
@@ -1135,6 +1167,33 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
     if (beans == null) {
       beans = new HashMap<Object, Object>();
     }
+  }
+  
+  protected void initEventDispatcher() {
+  	if(this.eventDispatcher == null) {
+  		this.eventDispatcher = new ActivitiEventDispatcherImpl();
+  	}
+  	
+  	this.eventDispatcher.setEnabled(enableEventDispatcher);
+  	
+  	if(eventListeners != null) {
+  		for(ActivitiEventListener listenerToAdd : eventListeners) {
+  			this.eventDispatcher.addEventListener(listenerToAdd);
+  		}
+  	}
+  	
+  	if(typedEventListeners != null) {
+  		for(Entry<String, List<ActivitiEventListener>> listenersToAdd : typedEventListeners.entrySet()) {
+  			// Extract types from the given string
+  			ActivitiEventType[] types = ActivitiEventType.getTypesFromString(listenersToAdd.getKey());
+  			
+  			for(ActivitiEventListener listenerToAdd : listenersToAdd.getValue()) {
+  				this.eventDispatcher.addEventListener(listenerToAdd, types);
+  			}
+  		}
+  	}
+  	
+  	
   }
 
   // getters and setters //////////////////////////////////////////////////////
@@ -1723,5 +1782,25 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   public ProcessEngineConfigurationImpl setEnableSafeBpmnXml(boolean enableSafeBpmnXml) {
     this.enableSafeBpmnXml = enableSafeBpmnXml;
     return this;
+  }
+  
+  public ActivitiEventDispatcher getEventDispatcher() {
+	  return eventDispatcher;
+  }
+  
+  public void setEventDispatcher(ActivitiEventDispatcher eventDispatcher) {
+	  this.eventDispatcher = eventDispatcher;
+  }
+  
+  public void setEnableEventDispatcher(boolean enableEventDispatcher) {
+	  this.enableEventDispatcher = enableEventDispatcher;
+  }
+  
+  public void setTypedEventListeners(Map<String, List<ActivitiEventListener>> typedListeners) {
+	  this.typedEventListeners = typedListeners;
+  }
+  
+  public void setEventListeners(List<ActivitiEventListener> eventListeners) {
+	  this.eventListeners = eventListeners;
   }
 }

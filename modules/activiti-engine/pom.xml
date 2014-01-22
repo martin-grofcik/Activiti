@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
@@ -10,7 +10,7 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.15.EDW.5</version>
+    <version>5.15.EDW.6</version>
   </parent>
 
   <dependencies>
@@ -140,15 +140,6 @@
     
   </dependencies>
   
-  <repositories>
-    <!-- This repo declaration is here for as this will be part of the distro -->
-    <repository>
-      <id>activiti</id>
-      <name>Activiti</name>
-      <url>https://maven.alfresco.com/nexus/content/repositories/activiti/</url>
-    </repository>
-  </repositories>
-
   <properties>
     <activiti.artifact>
       org.activiti.engine
@@ -157,8 +148,8 @@
       org.activiti.db.mapping.entity
     </activiti.osgi.export.additional>
     <activiti.osgi.import.additional>
-      junit;resolution:=optional,
-      org.junit;resolution:=optional,
+      junit.*;resolution:=optional,
+      org.junit.*;resolution:=optional,
       com.sun;resolution:=optional,
       javax.persistence;resolution:=optional,
       org.apache.commons.mail;resolution:=optional,
@@ -166,10 +157,9 @@
       org.apache.xerces;resolution:=optional,
       org.activiti.camel;resolution:=optional,
       org.activiti.camel.impl;resolution:=optional,
-      org.activiti.osgi;resolution:=optional,
       org.springframework;resolution:=optional,
-      org.drools;resolution:=optional,
-      com.fasterxml;resolution:=optional,
+      org.drools.*;resolution:=optional,
+      com.fasterxml.*;resolution:=optional,
     </activiti.osgi.import.additional>
   </properties>
 

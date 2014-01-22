@@ -54,12 +54,16 @@ public class TaskQueryImpl extends AbstractVariableQueryImpl<TaskQuery, Task> im
   protected DelegationState delegationState;
   protected String candidateUser;
   protected String candidateGroup;
-  private List<String> candidateGroups;
+  protected List<String> candidateGroups;
+  protected String tenantId;
+  protected String tenantIdLike;
+  protected boolean withoutTenantId;
   protected String processInstanceId;
   protected String executionId;
   protected Date createTime;
   protected Date createTimeBefore;
   protected Date createTimeAfter;
+  protected String category;
   protected String key;
   protected String keyLike;
   protected String processDefinitionKey;
@@ -260,6 +264,27 @@ public class TaskQueryImpl extends AbstractVariableQueryImpl<TaskQuery, Task> im
     return this;
   }
   
+  public TaskQuery taskTenantId(String tenantId) {
+  	if (tenantId == null) {
+  		throw new ActivitiIllegalArgumentException("task tenant id is null");
+  	}
+  	this.tenantId = tenantId;
+  	return this;
+  }
+  
+  public TaskQuery taskTenantIdLike(String tenantIdLike) {
+  	if (tenantIdLike == null) {
+  		throw new ActivitiIllegalArgumentException("task tenant id is null");
+  	}
+  	this.tenantIdLike = tenantIdLike;
+  	return this;
+  }
+  
+  public TaskQuery taskWithoutTenantId() {
+  	this.withoutTenantId = true;
+  	return this;
+  }
+  
   public TaskQueryImpl processInstanceId(String processInstanceId) {
     this.processInstanceId = processInstanceId;
     return this;
@@ -293,6 +318,11 @@ public class TaskQueryImpl extends AbstractVariableQueryImpl<TaskQuery, Task> im
   public TaskQuery taskCreatedAfter(Date after) {
     this.createTimeAfter = after;
     return this;
+  }
+  
+  public TaskQuery taskCategory(String category) {
+  	this.category = category;
+  	return this;
   }
   
   public TaskQuery taskDefinitionKey(String key) {
@@ -530,6 +560,11 @@ public class TaskQueryImpl extends AbstractVariableQueryImpl<TaskQuery, Task> im
     return orderBy(TaskQueryProperty.DUE_DATE);
   }
   
+  @Override
+  public TaskQuery orderByTenantId() {
+  	return orderBy(TaskQueryProperty.TENANT_ID);
+  }
+  
   public String getMssqlOrDB2OrderBy() {
     String specialOrderBy = super.getOrderBy();
     if (specialOrderBy != null && specialOrderBy.length() > 0) {
@@ -639,4 +674,14 @@ public class TaskQueryImpl extends AbstractVariableQueryImpl<TaskQuery, Task> im
   public boolean getExcludeSubtasks() {
     return excludeSubtasks;
   }
+	public String getTenantId() {
+		return tenantId;
+	}
+	public String getTenantIdLike() {
+		return tenantIdLike;
+	}
+	public boolean isWithoutTenantId() {
+		return withoutTenantId;
+	}
+  
 }
