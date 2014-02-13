@@ -52,9 +52,7 @@ public class AssociationXMLConverter extends BaseBpmnXMLConverter {
     if(StringUtils.isEmpty(association.getTargetRef())) {
       model.addProblem("association element missing attribute 'targetRef'", xtr);
     }
-
-    parseChildElements(getXMLElementName(), association,xtr);
-
+    
     return association;
   }
 
