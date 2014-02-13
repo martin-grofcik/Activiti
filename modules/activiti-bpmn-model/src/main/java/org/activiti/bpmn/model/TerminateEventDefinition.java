@@ -17,13 +17,4 @@ package org.activiti.bpmn.model;
  */
 public class TerminateEventDefinition extends EventDefinition {
 
-  public TerminateEventDefinition clone() {
-    TerminateEventDefinition clone = new TerminateEventDefinition();
-    clone.setValues(this);
-    return clone;
-  }
-  
-  public void setValues(TerminateEventDefinition otherDefinition) {
-    super.setValues(otherDefinition);
-  }
 }

@@ -97,12 +97,5 @@ public class ProcessDefinitionEntityManager extends AbstractManager {
   public long findProcessDefinitionCountByNativeQuery(Map<String, Object> parameterMap) {
     return (Long) getDbSqlSession().selectOne("selectProcessDefinitionCountByNativeQuery", parameterMap);
   }
-  
-  public void updateProcessDefinitionTenantIdForDeployment(String deploymentId, String newTenantId) {
-  	HashMap<String, Object> params = new HashMap<String, Object>();
-  	params.put("deploymentId", deploymentId);
-  	params.put("tenantId", newTenantId);
-  	getDbSqlSession().update("updateProcessDefinitionTenantIdForDeploymentId", params);
-  }
  
 }

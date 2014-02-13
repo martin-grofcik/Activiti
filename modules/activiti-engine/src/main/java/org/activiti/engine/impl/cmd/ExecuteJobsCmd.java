@@ -17,8 +17,6 @@ import java.io.Serializable;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.JobNotFoundException;
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.cfg.TransactionState;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.interceptor.Command;
@@ -71,11 +69,6 @@ public class ExecuteJobsCmd implements Command<Object>, Serializable {
     
     try {
       job.execute(commandContext);
-      
-      if(commandContext.getEventDispatcher().isEnabled()) {
-      	commandContext.getEventDispatcher().dispatchEvent(ActivitiEventBuilder.createEntityEvent(
-      			ActivitiEventType.JOB_EXECUTION_SUCCESS, job));
-      }
     } catch (Throwable exception) {
       // When transaction is rolled back, decrement retries
       CommandExecutor commandExecutor = Context
@@ -85,19 +78,8 @@ public class ExecuteJobsCmd implements Command<Object>, Serializable {
       commandContext.getTransactionContext().addTransactionListener(
         TransactionState.ROLLED_BACK, 
         new FailedJobListener(commandExecutor, jobId, exception));
-      
-      // Dispatch an event, indicating job execution failed in a try-catch block, to prevent the original
-      // exception to be swallowed
-      if(commandContext.getEventDispatcher().isEnabled()) {
-	      try {
-	      	commandContext.getEventDispatcher().dispatchEvent(ActivitiEventBuilder.createEntityExceptionEvent(
-	      			ActivitiEventType.JOB_EXECUTION_FAILURE, job, exception));
-	      } catch(Throwable ignore) {
-	      	log.warn("Exception occured while dispatching job failure event, ignoring.", ignore);
-	      }
-      }
        
-      // Finally, Throw the exception to indicate the ExecuteJobCmd failed
+      // throw the exception to indicate the ExecuteJobCmd failed
       throw new ActivitiException("Job " + jobId + " failed", exception);
     } finally {
       if (jobExecutorContext != null) {

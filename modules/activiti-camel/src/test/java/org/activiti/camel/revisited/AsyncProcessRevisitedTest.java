@@ -13,10 +13,6 @@
 
 package org.activiti.camel.revisited;
 
-/**
- * @author Saeid Mirzaei  
- */
-
 import java.util.List;
 
 import org.activiti.engine.RuntimeService;

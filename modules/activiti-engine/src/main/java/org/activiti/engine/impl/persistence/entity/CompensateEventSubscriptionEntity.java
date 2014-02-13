@@ -24,6 +24,7 @@ public class CompensateEventSubscriptionEntity extends EventSubscriptionEntity {
   
   private static final long serialVersionUID = 1L;
   
+  @SuppressWarnings("unused") // used by mybatis
   private CompensateEventSubscriptionEntity() {
   }
 

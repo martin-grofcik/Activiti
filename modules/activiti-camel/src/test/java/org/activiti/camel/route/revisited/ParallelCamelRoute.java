@@ -13,10 +13,6 @@
 
 package org.activiti.camel.route.revisited;
 
-/**
- * @author Saeid Mirzaei  
- */
-
 import org.apache.camel.builder.RouteBuilder;
 
 public class ParallelCamelRoute extends RouteBuilder {

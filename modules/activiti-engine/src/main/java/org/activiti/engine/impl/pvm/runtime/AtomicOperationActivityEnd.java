@@ -15,9 +15,6 @@ package org.activiti.engine.impl.pvm.runtime;
 
 import java.util.List;
 
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
-import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.pvm.delegate.ActivityBehavior;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.activiti.engine.impl.pvm.delegate.CompositeActivityBehavior;
@@ -43,13 +40,6 @@ public class AtomicOperationActivityEnd extends AbstractEventAtomicOperation {
   @SuppressWarnings("unchecked")
   @Override
   protected void eventNotificationsCompleted(InterpretableExecution execution) {
-  	
-  	if(Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
-    	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-    			ActivitiEventBuilder.createActivityEvent(ActivitiEventType.ACTIVITY_COMPLETED, execution.getActivity().getId(), execution.getId(), 
-    					execution.getProcessInstanceId(), execution.getProcessDefinitionId()));
-    }
-  	
     ActivityImpl activity = (ActivityImpl) execution.getActivity();
     ActivityImpl parentActivity = activity.getParentActivity();
 

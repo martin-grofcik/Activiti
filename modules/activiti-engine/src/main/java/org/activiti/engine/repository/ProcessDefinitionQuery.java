@@ -13,6 +13,7 @@
 
 package org.activiti.engine.repository;
 
+import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.query.Query;
 
@@ -108,21 +109,6 @@ public interface ProcessDefinitionQuery extends Query<ProcessDefinitionQuery, Pr
    */
   ProcessDefinitionQuery active();
   
-	/**
-	 * Only select process definitions that have the given tenant id.
-	 */
-  ProcessDefinitionQuery processDefinitionTenantId(String tenantId);
-
-	/**
-	 * Only select process definitions with a tenant id like the given one.
-	 */
-  ProcessDefinitionQuery processDefinitionTenantIdLike(String tenantIdLike);
-	
-	/**
-	 * Only select process definitions that do not have a tenant id.
-	 */
-  ProcessDefinitionQuery processDefinitionWithoutTenantId();
-  
   // Support for event subscriptions /////////////////////////////////////
   
   /**
@@ -156,11 +142,5 @@ public interface ProcessDefinitionQuery extends Query<ProcessDefinitionQuery, Pr
   
   /** Order by deployment id (needs to be followed by {@link #asc()} or {@link #desc()}). */
   ProcessDefinitionQuery orderByDeploymentId();
-  
-	/**
-	 * Order by tenant id (needs to be followed by {@link #asc()} or
-	 * {@link #desc()}).
-	 */
-  ProcessDefinitionQuery orderByTenantId();
   
 }

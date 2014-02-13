@@ -42,17 +42,4 @@ public class BoundaryEvent extends Event {
   public void setCancelActivity(boolean cancelActivity) {
     this.cancelActivity = cancelActivity;
   }
-  
-  public BoundaryEvent clone() {
-    BoundaryEvent clone = new BoundaryEvent();
-    clone.setValues(this);
-    return clone;
-  }
-  
-  public void setValues(BoundaryEvent otherEvent) {
-    super.setValues(otherEvent);
-    setAttachedToRefId(otherEvent.getAttachedToRefId());
-    setAttachedToRef(otherEvent.getAttachedToRef());
-    setCancelActivity(otherEvent.isCancelActivity());
-  }
 }

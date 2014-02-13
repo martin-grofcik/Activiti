@@ -27,7 +27,6 @@ public class ExecutionResponse {
   protected String processInstanceUrl;
   protected boolean suspended;
   protected String activityId;
-  protected String tenantId;
   
   public String getId() {
     return id;
@@ -91,13 +90,5 @@ public class ExecutionResponse {
   
   public void setActivityId(String activityId) {
     this.activityId = activityId;
-  }
-  
-  public String getTenantId() {
-	  return tenantId;
-  }
-  
-  public void setTenantId(String tenantId) {
-	  this.tenantId = tenantId;
   }
 }

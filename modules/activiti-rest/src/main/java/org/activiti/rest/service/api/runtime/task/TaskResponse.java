@@ -38,7 +38,6 @@ public class TaskResponse {
   protected int priority;
   protected boolean suspended;
   protected String taskDefinitionKey;
-  protected String tenantId;
   
   // References to other resources
   protected String parentTaskId;
@@ -68,7 +67,6 @@ public class TaskResponse {
     setExecutionId(task.getExecutionId());
     setProcessInstanceId(task.getProcessInstanceId());
     setProcessDefinitionId(task.getProcessDefinitionId());
-    setTenantId(task.getTenantId());
   }
   
   protected String getDelegationStateString(DelegationState state) {
@@ -226,13 +224,5 @@ public class TaskResponse {
   
   public void addVariable(RestVariable variable) {
     variables.add(variable);
-  }
-  
-  public String getTenantId() {
-	  return tenantId;
-  }
-  
-  public void setTenantId(String tenantId) {
-	  this.tenantId = tenantId;
   }
 }

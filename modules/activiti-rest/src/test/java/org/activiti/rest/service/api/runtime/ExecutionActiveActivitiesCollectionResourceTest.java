@@ -51,6 +51,5 @@ public class ExecutionActiveActivitiesCollectionResourceTest extends BaseRestTes
     
     assertTrue(states.contains("waitState"));
     assertTrue(states.contains("anotherWaitState"));
-    client.release();
   }
 }

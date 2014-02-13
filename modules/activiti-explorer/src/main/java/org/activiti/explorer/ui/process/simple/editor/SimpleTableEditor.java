@@ -33,7 +33,6 @@ import org.activiti.explorer.ui.mainlayout.ExplorerLayout;
 import org.activiti.explorer.ui.process.simple.editor.table.TaskTable;
 import org.activiti.workflow.simple.converter.WorkflowDefinitionConversion;
 import org.activiti.workflow.simple.definition.HumanStepDefinition;
-import org.activiti.workflow.simple.definition.ListStepDefinition;
 import org.activiti.workflow.simple.definition.ParallelStepsDefinition;
 import org.activiti.workflow.simple.definition.StepDefinition;
 import org.activiti.workflow.simple.definition.StepDefinitionContainer;
@@ -333,14 +332,10 @@ public class SimpleTableEditor extends AbstractPage {
 	      while (nextIndex < steps.size() && steps.get(nextIndex).isStartsWithPrevious()) {
 	        if (parallelStepsDefinition == null) {
 	          parallelStepsDefinition = new ParallelStepsDefinition();
-	          ListStepDefinition<ParallelStepsDefinition> listStepDef = new ListStepDefinition<ParallelStepsDefinition>();
-	          listStepDef.addStep(currentStep);
-	          parallelStepsDefinition.addStepList(listStepDef);
+	          parallelStepsDefinition.addStep(currentStep);
 	        }
 	        
-	        ListStepDefinition<ParallelStepsDefinition> listStepDef = new ListStepDefinition<ParallelStepsDefinition>();
-          listStepDef.addStep(steps.get(nextIndex));
-          parallelStepsDefinition.addStepList(listStepDef);
+	        parallelStepsDefinition.addStep(steps.get(nextIndex));
 	        nextIndex++;
 	      }
 	      

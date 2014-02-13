@@ -13,25 +13,14 @@
 package org.activiti.bpmn.model;
 
 
-
 /**
  * @author Tijs Rademakers
- * @author Joram Barrez
  */
 public class SequenceFlow extends FlowElement {
 
   protected String conditionExpression;
   protected String sourceRef;
   protected String targetRef;
-  
-  public SequenceFlow() {
-  	
-  }
-  
-  public SequenceFlow(String sourceRef, String targetRef) {
-  	this.sourceRef = sourceRef;
-  	this.targetRef = targetRef;
-  }
 
   public String getConditionExpression() {
     return conditionExpression;
@@ -53,18 +42,5 @@ public class SequenceFlow extends FlowElement {
   }
   public String toString() {
     return sourceRef + " --> " + targetRef;
-  }
-  
-  public SequenceFlow clone() {
-    SequenceFlow clone = new SequenceFlow();
-    clone.setValues(this);
-    return clone;
-  }
-  
-  public void setValues(SequenceFlow otherFlow) {
-    super.setValues(otherFlow);
-    setConditionExpression(otherFlow.getConditionExpression());
-    setSourceRef(otherFlow.getSourceRef());
-    setTargetRef(otherFlow.getTargetRef());
   }
 }

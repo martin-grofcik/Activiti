@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 
-import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.engine.history.HistoricTaskInstance;
@@ -33,8 +32,10 @@ import org.activiti.rest.service.api.engine.variable.RestVariable;
 import org.activiti.rest.service.api.engine.variable.RestVariable.RestVariableScope;
 import org.activiti.rest.service.application.ActivitiRestServicesApplication;
 import org.restlet.data.MediaType;
+import org.restlet.data.Status;
 import org.restlet.representation.InputRepresentation;
 import org.restlet.resource.Get;
+import org.restlet.resource.ResourceException;
 
 /**
  * @author Tijs Rademakers
@@ -62,12 +63,12 @@ public class HistoricTaskInstanceVariableDataResource extends SecuredResource {
         mediaType = MediaType.APPLICATION_JAVA_OBJECT;
         
       } else {
-        throw new ActivitiObjectNotFoundException("The variable does not have a binary data stream.", null);
+        throw new ResourceException(new Status(Status.CLIENT_ERROR_NOT_FOUND.getCode(), "The variable does not have a binary data stream.", null, null));
       }
       return new InputRepresentation(dataStream, mediaType);
     } catch(IOException ioe) {
       // Re-throw IOException
-      throw new ActivitiException("Unexpected exception getting variable data", ioe);
+      throw new ResourceException(Status.SERVER_ERROR_INTERNAL, ioe);
     }
   }
   

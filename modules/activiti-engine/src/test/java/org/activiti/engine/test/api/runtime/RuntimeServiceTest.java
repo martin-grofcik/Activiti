@@ -129,10 +129,12 @@ public class RuntimeServiceTest extends PluggableActivitiTestCase {
     "org/activiti/engine/test/api/oneTaskProcess.bpmn20.xml"})
   public void testNonUniqueBusinessKey() {
     runtimeService.startProcessInstanceByKey("oneTaskProcess", "123");
-    
-    // Behaviour changed: http://jira.codehaus.org/browse/ACT-1860
-    runtimeService.startProcessInstanceByKey("oneTaskProcess", "123");
-    assertEquals(2, runtimeService.createProcessInstanceQuery().processInstanceBusinessKey("123").count());
+    try {
+      runtimeService.startProcessInstanceByKey("oneTaskProcess", "123");
+      fail("Non-unique business key used, this should fail");
+    } catch(Exception e) {
+      
+    }
   }
   
   // some databases might react strange on having mutiple times null for the business key

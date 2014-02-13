@@ -41,7 +41,6 @@ public class BpmnModel {
 	protected List<Pool> pools = new ArrayList<Pool>();
 	protected List<Import> imports = new ArrayList<Import>();
 	protected List<Interface> interfaces = new ArrayList<Interface>();
-	protected List<Artifact> globalArtifacts = new ArrayList<Artifact>();
 	protected List<Problem> problems = new ArrayList<Problem>();
 	protected List<Warning> warnings = new ArrayList<Warning>();
 	protected Map<String, String> namespaceMap = new LinkedHashMap<String, String>();
@@ -49,11 +48,8 @@ public class BpmnModel {
 	protected int nextFlowIdCounter = 1;
 
 	public Process getMainProcess() {
-	  if (getPools().size() > 0) {
-	    return getProcess(getPools().get(0).getId());
-	  } else {
-	    return getProcess(null);
-	  }
+	  Process process = getProcess(null);
+	  return process;
 	}
 
 	public Process getProcess(String poolRef) {
@@ -363,14 +359,6 @@ public class BpmnModel {
 
   public void setInterfaces(List<Interface> interfaces) {
     this.interfaces = interfaces;
-  }
-
-  public List<Artifact> getGlobalArtifacts() {
-    return globalArtifacts;
-  }
-
-  public void setGlobalArtifacts(List<Artifact> globalArtifacts) {
-    this.globalArtifacts = globalArtifacts;
   }
 
   public void addNamespace(String prefix, String uri) {

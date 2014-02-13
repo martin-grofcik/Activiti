@@ -12,11 +12,10 @@
  */
 package org.activiti.bpmn.model;
 
-
 /**
  * @author Tijs Rademakers
  */
-public abstract class Gateway extends FlowNode {
+public class Gateway extends FlowNode {
 
   protected String defaultFlow;
 
@@ -26,12 +25,5 @@ public abstract class Gateway extends FlowNode {
 
   public void setDefaultFlow(String defaultFlow) {
     this.defaultFlow = defaultFlow;
-  }
-  
-  public abstract Gateway clone();
-  
-  public void setValues(Gateway otherElement) {
-    super.setValues(otherElement);
-    setDefaultFlow(otherElement.getDefaultFlow());
   }
 }

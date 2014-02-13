@@ -56,6 +56,6 @@ public class EndEventXMLConverter extends BaseBpmnXMLConverter {
   @Override
   protected void writeAdditionalChildElements(BaseElement element, XMLStreamWriter xtw) throws Exception {
     EndEvent endEvent = (EndEvent) element;
-    writeEventDefinitions(endEvent, endEvent.getEventDefinitions(), xtw);
+    writeEventDefinitions(endEvent.getEventDefinitions(), xtw);
   }
 }

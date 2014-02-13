@@ -179,51 +179,34 @@ public class FullHistoryTest extends ResourceActivitiTestCase {
     HistoricVariableInstance historicVariable = historicVariables.get(0);
     assertEquals("bytes", historicVariable.getVariableName());
     assertEquals(":-)", new String((byte[])historicVariable.getValue()));
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(1);
     assertEquals("character", historicVariable.getVariableName());
     assertEquals("a", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(2);
     assertEquals("number", historicVariable.getVariableName());
     assertEquals("two", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
-    assertNotSame(historicVariable.getCreateTime(), historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(3);
     assertEquals("zVar1", historicVariable.getVariableName());
     assertEquals("Event: start", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(4);
     assertEquals("zVar2", historicVariable.getVariableName());
     assertEquals("Event: take", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(5);
     assertEquals("zVar3", historicVariable.getVariableName());
     assertEquals("Event: start", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(6);
     assertEquals("zVar4", historicVariable.getVariableName());
     assertEquals("Event: end", historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
     
     historicVariable = historicVariables.get(7);
     assertEquals("zzz", historicVariable.getVariableName());
     assertEquals(123456789L, historicVariable.getValue());
-    assertNotNull(historicVariable.getCreateTime());
-    assertNotNull(historicVariable.getLastUpdatedTime());
   }
   
   @Deployment(resources={"org/activiti/engine/test/history/oneTaskProcess.bpmn20.xml"})
@@ -1307,10 +1290,8 @@ public class FullHistoryTest extends ResourceActivitiTestCase {
     manager.getTransaction().commit();
     manager.close();
     
-    Task task = taskService.createTaskQuery().processInstanceId(executionId).taskName("my task").singleResult();
-    
     runtimeService.setVariable(executionId, variableName, entity);
-    taskService.complete(task.getId());
+    runtimeService.signal(executionId);
     
     List<HistoricDetail> variableUpdates = historyService.createHistoricDetailQuery().processInstanceId(executionId).variableUpdates().list();
     

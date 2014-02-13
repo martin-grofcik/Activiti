@@ -81,7 +81,7 @@ public class StartEventXMLConverter extends BaseBpmnXMLConverter {
   @Override
   protected void writeAdditionalChildElements(BaseElement element, XMLStreamWriter xtw) throws Exception {
     StartEvent startEvent = (StartEvent) element;
-    writeEventDefinitions(startEvent, startEvent.getEventDefinitions(), xtw);
+    writeEventDefinitions(startEvent.getEventDefinitions(), xtw);
   }
   
   public void addFormType(String formType) {

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 
-import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.rest.service.api.RestResponseFactory;
 import org.activiti.rest.service.api.engine.variable.RestVariable;
 import org.restlet.data.MediaType;
@@ -54,7 +53,7 @@ public class ExecutionVariableDataResource extends BaseExecutionVariableResource
         mediaType = MediaType.APPLICATION_JAVA_OBJECT;
         
       } else {
-        throw new ActivitiObjectNotFoundException("The variable does not have a binary data stream.", null);
+        throw new ResourceException(new Status(Status.CLIENT_ERROR_NOT_FOUND.getCode(), "The variable does not have a binary data stream.", null, null));
       }
       return new InputRepresentation(dataStream, mediaType);
     } catch(IOException ioe) {

@@ -15,7 +15,6 @@ package org.activiti.engine;
 import java.sql.Connection;
 import java.util.Map;
 
-import org.activiti.engine.impl.cmd.CustomSqlExecution;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandConfig;
 import org.activiti.engine.management.TableMetaData;
@@ -123,12 +122,5 @@ public interface ManagementService {
    * @return the result of command execution
    */
   <T> T executeCommand(CommandConfig config, Command<T> command);
-  
-  /**
-   * [EXPERIMENTAL]
-   * 
-   * Executes the sql contained in the {@link CustomSqlExecution} parameter.
-   */
-  <MapperType, ResultType> ResultType executeCustomSql(CustomSqlExecution<MapperType, ResultType> customSqlExecution);
   
 }

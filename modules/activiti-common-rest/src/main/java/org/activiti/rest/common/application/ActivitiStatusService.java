@@ -50,14 +50,12 @@ public class ActivitiStatusService extends StatusService {
     if(status != null && status.isError()) {
       RestError error = new RestError();
       error.setStatusCode(status.getCode());
-      error.setErrorMessage(status.getDescription());
+      error.setErrorMessage(status.getName());
       return new JacksonRepresentation<RestError>(error);
     } else {
       return super.getRepresentation(status, request, response);
     }
   }
-  
-  
   
   @Override
   public Status getStatus(Throwable throwable, Request request, Response response) {
@@ -69,13 +67,7 @@ public class ActivitiStatusService extends StatusService {
     }
     
     if(status == null) {
-      Throwable causeThrowable = null;
-      if (throwable.getCause() != null && throwable.getCause() instanceof ActivitiException) {
-        causeThrowable = throwable.getCause();
-      } else {
-        causeThrowable = throwable;
-      }
-      status = getSpecificStatus(causeThrowable, request, response);
+      status = getSpecificStatus(throwable, request, response);
     }
     return status != null ? status : Status.SERVER_ERROR_INTERNAL;
   }
@@ -85,18 +77,18 @@ public class ActivitiStatusService extends StatusService {
     
     if(throwable instanceof ActivitiObjectNotFoundException) {
       // 404 - Entity not found
-      status = new Status(Status.CLIENT_ERROR_NOT_FOUND.getCode(), getSafeStatusName(throwable.getMessage()), getSafeStatusName(throwable.getMessage()), null);
+      status = new Status(Status.CLIENT_ERROR_NOT_FOUND.getCode(), getSafeStatusName(throwable.getMessage()), null, null);
     } else if(throwable instanceof ActivitiIllegalArgumentException) {
       // 400 - Bad Request
-      status = new Status(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), getSafeStatusName(throwable.getMessage()), getSafeStatusName(throwable.getMessage()), null);
+      status = new Status(Status.CLIENT_ERROR_BAD_REQUEST.getCode(), getSafeStatusName(throwable.getMessage()), null, null);
     } else if (throwable instanceof ActivitiOptimisticLockingException || throwable instanceof ActivitiTaskAlreadyClaimedException) {
       // 409 - Conflict
-      status = new Status(Status.CLIENT_ERROR_CONFLICT.getCode(), getSafeStatusName(throwable.getMessage()), getSafeStatusName(throwable.getMessage()), null);
+      status = new Status(Status.CLIENT_ERROR_CONFLICT.getCode(), getSafeStatusName(throwable.getMessage()), null, null);
     }  else if (throwable instanceof ResourceException) {
       ResourceException re = (ResourceException) throwable;
       status = re.getStatus();
     } else if(throwable instanceof ActivitiException) {
-      status = new Status(Status.SERVER_ERROR_INTERNAL.getCode(), getSafeStatusName(throwable.getMessage()), getSafeStatusName(throwable.getMessage()), null);;
+      status = new Status(Status.SERVER_ERROR_INTERNAL.getCode(), getSafeStatusName(throwable.getMessage()), null, null);;
     } else {
       status = null;
     }

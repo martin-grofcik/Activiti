@@ -27,14 +27,13 @@ import org.activiti.rest.service.HttpMultipartRepresentation;
 import org.activiti.rest.service.api.RestUrls;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
+import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;
-import org.restlet.engine.header.Header;
-import org.restlet.engine.header.HeaderConstants;
+import org.restlet.engine.http.header.HeaderConstants;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 import org.restlet.resource.ResourceException;
-import org.restlet.util.Series;
 
 /**
  * Test for all REST-operations related to a single task variable.
@@ -291,8 +290,7 @@ public class ProcessInstanceVariableResourceTest extends BaseRestTestCase {
   }
   
   protected String getMediaType(ClientResource client) {
-    @SuppressWarnings("unchecked")
-    Series<Header> headers = (Series<Header>) client.getResponseAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
+    Form headers = (Form) client.getResponseAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
     return headers.getFirstValue(HeaderConstants.HEADER_CONTENT_TYPE);
   }
 }

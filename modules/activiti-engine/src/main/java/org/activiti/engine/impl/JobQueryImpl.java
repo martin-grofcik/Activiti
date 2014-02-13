@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
@@ -47,9 +48,6 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
   protected Date duedateLowerThanOrEqual;
   protected boolean withException;
   protected String exceptionMessage;
-  protected String tenantId;
-  protected String tenantIdLike;
-  protected boolean withoutTenantId;
   
   public JobQueryImpl() {
   }
@@ -173,27 +171,6 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
     return this;
   }
   
-  public JobQuery jobTenantId(String tenantId) {
-  	if (tenantId == null) {
-  		throw new ActivitiIllegalArgumentException("job is null");
-  	}
-  	this.tenantId = tenantId;
-  	return this;
-  }
-  
-  public JobQuery jobTenantIdLike(String tenantIdLike) {
-  	if (tenantIdLike == null) {
-  		throw new ActivitiIllegalArgumentException("job is null");
-  	}
-  	this.tenantIdLike = tenantIdLike;
-  	return this;
-  }
-  
-  public JobQuery jobWithoutTenantId() {
-  	this.withoutTenantId = true;
-  	return this;
-  }
-  
   //sorting //////////////////////////////////////////
   
   public JobQuery orderByJobDuedate() {
@@ -214,10 +191,6 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
   
   public JobQuery orderByJobRetries() {
     return orderBy(JobQueryProperty.RETRIES);
-  }
-  
-  public JobQuery orderByTenantId() {
-  	 return orderBy(JobQueryProperty.TENANT_ID);
   }
   
   //results //////////////////////////////////////////
@@ -259,14 +232,4 @@ public class JobQueryImpl extends AbstractQuery<JobQuery, Job> implements JobQue
   public String getExceptionMessage() {
     return exceptionMessage;
   }
-	public String getTenantId() {
-		return tenantId;
-	}
-	public String getTenantIdLike() {
-		return tenantIdLike;
-	}
-	public boolean isWithoutTenantId() {
-		return withoutTenantId;
-	}
-  
 }

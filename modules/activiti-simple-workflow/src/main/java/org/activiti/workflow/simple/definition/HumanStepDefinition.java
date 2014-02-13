@@ -28,7 +28,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * @author Joram Barrez
  */
 @JsonTypeName("human-step")
-public class HumanStepDefinition extends AbstractNamedStepDefinition implements FormStepDefinition {
+public class HumanStepDefinition extends AbstractNamedStepDefinition {
 
   private static final long serialVersionUID = 1L;
   
@@ -71,13 +71,9 @@ public class HumanStepDefinition extends AbstractNamedStepDefinition implements 
     return form;
   }
 
-  public HumanStepDefinition addForm(FormDefinition form) {
+  public HumanStepDefinition setForm(FormDefinition form) {
     this.form = form;
     return this;
-  }
-  
-  public void setForm(FormDefinition form) {
-    this.form = form;
   }
   
   public HumanStepAssignment getAssignment() {

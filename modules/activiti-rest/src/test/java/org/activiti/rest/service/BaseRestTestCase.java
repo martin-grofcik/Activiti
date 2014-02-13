@@ -51,13 +51,12 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Assert;
 import org.restlet.Component;
 import org.restlet.data.ChallengeScheme;
+import org.restlet.data.Form;
 import org.restlet.data.Protocol;
 import org.restlet.data.Status;
-import org.restlet.engine.header.Header;
-import org.restlet.engine.header.HeaderConstants;
+import org.restlet.engine.http.header.HeaderConstants;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
-import org.restlet.util.Series;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -435,8 +434,7 @@ public class BaseRestTestCase extends PvmTestCase {
   }
   
   protected String getMediaType(ClientResource client) {
-    @SuppressWarnings("unchecked")
-    Series<Header> headers = (Series<Header>) client.getResponseAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
+    Form headers = (Form) client.getResponseAttributes().get(HeaderConstants.ATTRIBUTE_HEADERS);
     return headers.getFirstValue(HeaderConstants.HEADER_CONTENT_TYPE);
   }
 }

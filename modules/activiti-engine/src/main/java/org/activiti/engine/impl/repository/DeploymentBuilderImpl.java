@@ -124,11 +124,6 @@ public class DeploymentBuilderImpl implements DeploymentBuilder, Serializable {
     deployment.setCategory(category);
     return this;
   }
-  
-  public DeploymentBuilder tenantId(String tenantId) {
-    deployment.setTenantId(tenantId);
-    return this;
-  }
     
   public DeploymentBuilder enableDuplicateFiltering() {
     this.isDuplicateFilterEnabled = true;

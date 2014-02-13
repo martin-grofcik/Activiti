@@ -90,7 +90,6 @@ public class UserTaskJsonConverter extends BaseBpmnJsonConverter {
     }
     setPropertyValue(PROPERTY_FORMKEY, userTask.getFormKey(), propertiesNode);
     setPropertyValue(PROPERTY_DUEDATE, userTask.getDueDate(), propertiesNode);
-    setPropertyValue(PROPERTY_CATEGORY, userTask.getCategory(), propertiesNode);;
     
     addFormProperties(userTask.getFormProperties(), propertiesNode);
   }
@@ -101,7 +100,6 @@ public class UserTaskJsonConverter extends BaseBpmnJsonConverter {
     task.setPriority(getPropertyValueAsString(PROPERTY_PRIORITY, elementNode));
     task.setFormKey(getPropertyValueAsString(PROPERTY_FORMKEY, elementNode));
     task.setDueDate(getPropertyValueAsString(PROPERTY_DUEDATE, elementNode));
-    task.setCategory(getPropertyValueAsString(PROPERTY_CATEGORY, elementNode));
     
     JsonNode assignmentNode = getProperty(PROPERTY_USERTASK_ASSIGNMENT, elementNode);
     if (assignmentNode != null) {

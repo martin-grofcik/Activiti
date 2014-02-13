@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * @author Tijs Rademakers
  */
-public abstract class FlowNode extends FlowElement {
+public class FlowNode extends FlowElement {
 
   protected List<SequenceFlow> incomingFlows = new ArrayList<SequenceFlow>();
   protected List<SequenceFlow> outgoingFlows = new ArrayList<SequenceFlow>();
@@ -37,9 +37,5 @@ public abstract class FlowNode extends FlowElement {
 
   public void setOutgoingFlows(List<SequenceFlow> outgoingFlows) {
     this.outgoingFlows = outgoingFlows;
-  }
-  
-  public void setValues(FlowNode otherNode) {
-    super.setValues(otherNode);
   }
 }

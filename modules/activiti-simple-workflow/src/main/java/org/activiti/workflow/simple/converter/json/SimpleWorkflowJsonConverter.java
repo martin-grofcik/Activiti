@@ -16,12 +16,8 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.List;
 
-import org.activiti.workflow.simple.definition.ChoiceStepsDefinition;
-import org.activiti.workflow.simple.definition.DelayStepDefinition;
 import org.activiti.workflow.simple.definition.FeedbackStepDefinition;
 import org.activiti.workflow.simple.definition.HumanStepDefinition;
-import org.activiti.workflow.simple.definition.ListConditionStepDefinition;
-import org.activiti.workflow.simple.definition.ListStepDefinition;
 import org.activiti.workflow.simple.definition.ParallelStepsDefinition;
 import org.activiti.workflow.simple.definition.ScriptStepDefinition;
 import org.activiti.workflow.simple.definition.WorkflowDefinition;
@@ -132,8 +128,7 @@ public class SimpleWorkflowJsonConverter {
 					    ReferencePropertyDefinition.class, DatePropertyDefinition.class, NumberPropertyDefinition.class, BooleanPropertyDefinition.class);
 
 					// Register all step-types
-					objectMapper.registerSubtypes(HumanStepDefinition.class, FeedbackStepDefinition.class, ParallelStepsDefinition.class, ChoiceStepsDefinition.class, 
-					    ListStepDefinition.class, ListConditionStepDefinition.class, ScriptStepDefinition.class, DelayStepDefinition.class);
+					objectMapper.registerSubtypes(HumanStepDefinition.class, FeedbackStepDefinition.class, ParallelStepsDefinition.class, ScriptStepDefinition.class);
 					// Register additional sub-types to allow custom model entities to be
 					// deserialized correctly
 					if (additionalModelClasses != null) {

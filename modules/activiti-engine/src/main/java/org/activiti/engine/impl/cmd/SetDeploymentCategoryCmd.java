@@ -14,8 +14,6 @@ package org.activiti.engine.impl.cmd;
 
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.ActivitiObjectNotFoundException;
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandContext;
@@ -52,11 +50,6 @@ public class SetDeploymentCategoryCmd implements Command<Void> {
     
     // Update category
     deployment.setCategory(category);
-    
-    if(Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
-    	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-    			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_UPDATED, deployment));
-    }
     
     return null;
   }

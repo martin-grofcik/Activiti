@@ -44,7 +44,6 @@ public class ModelCollectionResource extends BaseModelResource {
     allowedSortProperties.put("lastUpdateTime", ModelQueryProperty.MODEL_LAST_UPDATE_TIME);
     allowedSortProperties.put("name", ModelQueryProperty.MODEL_NAME);
     allowedSortProperties.put("version", ModelQueryProperty.MODEL_VERSION);
-    allowedSortProperties.put("tenantId", ModelQueryProperty.MODEL_TENANT_ID);
   }
   
   @Get
@@ -94,17 +93,6 @@ public class ModelCollectionResource extends BaseModelResource {
         modelQuery.notDeployed();
       }
     }
-    if(names.contains("tenantId")) {
-      modelQuery.modelTenantId(getQueryParameter("tenantId", form));
-    }
-    if(names.contains("tenantIdLike")) {
-      modelQuery.modelTenantIdLike(getQueryParameter("tenantIdLike", form));
-    }
-    if(names.contains("withoutTenantId")) {
-      if(Boolean.TRUE.equals(getQueryParameterAsBoolean("withoutTenantId", form))) {
-      	modelQuery.modelWithoutTenantId();
-      }
-    }
     return new ModelsPaginateList(this).paginateList(form, modelQuery, "id", allowedSortProperties);
   }
   
@@ -117,7 +105,6 @@ public class ModelCollectionResource extends BaseModelResource {
     model.setMetaInfo(request.getMetaInfo());
     model.setName(request.getName());
     model.setVersion(request.getVersion());
-    model.setTenantId(request.getTenantId());
 
     ActivitiUtil.getRepositoryService().saveModel(model);
     setStatus(Status.SUCCESS_CREATED);

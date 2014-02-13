@@ -23,8 +23,6 @@ import org.activiti.engine.ProcessEngines;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.cfg.TransactionContextFactory;
 import org.activiti.engine.impl.el.ExpressionManager;
@@ -88,9 +86,6 @@ public class ProcessEngineImpl implements ProcessEngine {
     if (processEngineConfiguration.getProcessEngineLifecycleListener() != null) {
       processEngineConfiguration.getProcessEngineLifecycleListener().onProcessEngineBuilt(this);
     }
-    
-    processEngineConfiguration.getEventDispatcher().dispatchEvent(
-    		ActivitiEventBuilder.createGlobalEvent(ActivitiEventType.ENGINE_CREATED));
   }
   
   public void close() {
@@ -104,9 +99,6 @@ public class ProcessEngineImpl implements ProcessEngine {
     if (processEngineConfiguration.getProcessEngineLifecycleListener() != null) {
       processEngineConfiguration.getProcessEngineLifecycleListener().onProcessEngineClosed(this);
     }
-    
-    processEngineConfiguration.getEventDispatcher().dispatchEvent(
-    		ActivitiEventBuilder.createGlobalEvent(ActivitiEventType.ENGINE_CLOSED));
   }
 
   // getters and setters //////////////////////////////////////////////////////

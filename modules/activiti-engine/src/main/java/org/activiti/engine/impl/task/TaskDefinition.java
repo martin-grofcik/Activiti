@@ -44,7 +44,6 @@ public class TaskDefinition implements Serializable {
   protected Set<Expression> candidateGroupIdExpressions = new HashSet<Expression>();
   protected Expression dueDateExpression;
   protected Expression priorityExpression;
-  protected Expression categoryExpression;
   
   // form fields
   protected TaskFormHandler taskFormHandler;
@@ -137,16 +136,8 @@ public class TaskDefinition implements Serializable {
   public void setDueDateExpression(Expression dueDateExpression) {
     this.dueDateExpression = dueDateExpression;
   }
-  
-  public Expression getCategoryExpression() {
-		return categoryExpression;
-	}
 
-	public void setCategoryExpression(Expression categoryExpression) {
-		this.categoryExpression = categoryExpression;
-	}
-
-	public Map<String, List<TaskListener>> getTaskListeners() {
+  public Map<String, List<TaskListener>> getTaskListeners() {
     return taskListeners;
   }
 
@@ -165,7 +156,6 @@ public class TaskDefinition implements Serializable {
       this.addTaskListener(TaskListener.EVENTNAME_CREATE, taskListener);
       this.addTaskListener(TaskListener.EVENTNAME_ASSIGNMENT, taskListener);
       this.addTaskListener(TaskListener.EVENTNAME_COMPLETE, taskListener);
-      this.addTaskListener(TaskListener.EVENTNAME_DELETE, taskListener);
       
     } else {
       List<TaskListener> taskEventListeners = taskListeners.get(eventName);

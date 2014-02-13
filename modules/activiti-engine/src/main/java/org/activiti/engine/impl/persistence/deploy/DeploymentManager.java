@@ -18,9 +18,6 @@ import java.util.List;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.ActivitiObjectNotFoundException;
-import org.activiti.engine.delegate.event.ActivitiEventDispatcher;
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.ProcessDefinitionQueryImpl;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.persistence.entity.DeploymentEntity;
@@ -109,36 +106,19 @@ public class DeploymentManager {
 	  DeploymentEntityManager deploymentEntityManager = Context
 			  .getCommandContext()
 			  .getDeploymentEntityManager();
-	  
-	  DeploymentEntity deployment = deploymentEntityManager.findDeploymentById(deploymentId); 
-	  if(deployment == null)
+	  if(deploymentEntityManager.findDeploymentById(deploymentId) == null)
 		  throw new ActivitiObjectNotFoundException("Could not find a deployment with id '" + deploymentId + "'.", DeploymentEntity.class);
 
     // Remove any process definition from the cache
     List<ProcessDefinition> processDefinitions = new ProcessDefinitionQueryImpl(Context.getCommandContext())
             .deploymentId(deploymentId)
             .list();
-    ActivitiEventDispatcher eventDispatcher = Context.getProcessEngineConfiguration().getEventDispatcher();
-    
     for (ProcessDefinition processDefinition : processDefinitions) {
       processDefinitionCache.remove(processDefinition.getId());
-      
-      // Since all process definitions are deleted by a single query, we should dispatch the
-      // events in this loop
-      if(eventDispatcher.isEnabled()) {
-      	eventDispatcher.dispatchEvent(ActivitiEventBuilder.createEntityEvent(
-      			ActivitiEventType.ENTITY_DELETED, processDefinition));
-      }
     }
     
     // Delete data
     deploymentEntityManager.deleteDeployment(deploymentId, cascade);
-    
-    // Since we use a delete by query, delete-events are not automatically dispatched
-    if(eventDispatcher.isEnabled()) {
-    	eventDispatcher.dispatchEvent(
-    			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_DELETED, deployment));
-    }
   }
   
   // getters and setters //////////////////////////////////////////////////////

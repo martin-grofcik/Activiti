@@ -50,7 +50,4 @@ public interface Model {
   String getDeploymentId();
   void setDeploymentId(String deploymentId);
   
-  void setTenantId(String tenantId);
-  String getTenantId();
-  
 }

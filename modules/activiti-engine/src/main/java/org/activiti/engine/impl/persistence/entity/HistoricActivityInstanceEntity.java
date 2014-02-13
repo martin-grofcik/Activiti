@@ -21,7 +21,6 @@ import org.activiti.engine.history.HistoricActivityInstance;
 
 /**
  * @author Christian Stettler
- * @author Joram Barrez
  */
 public class HistoricActivityInstanceEntity extends HistoricScopeInstanceEntity implements HistoricActivityInstance {
 
@@ -34,7 +33,6 @@ public class HistoricActivityInstanceEntity extends HistoricScopeInstanceEntity 
   protected String assignee;
   protected String taskId;
   protected String calledProcessInstanceId;
-  protected String tenantId;
   
   public Object getPersistentState() {
     Map<String, Object> persistentState = (Map<String, Object>) new HashMap<String, Object>();
@@ -97,17 +95,9 @@ public class HistoricActivityInstanceEntity extends HistoricScopeInstanceEntity 
     this.calledProcessInstanceId = calledProcessInstanceId;
   }
 
-  public String getTenantId() {
-		return tenantId;
-	}
+  // common methods  //////////////////////////////////////////////////////////
 
-	public void setTenantId(String tenantId) {
-		this.tenantId = tenantId;
-	}
-	
-	// common methods  //////////////////////////////////////////////////////////
-
-	@Override
+  @Override
   public String toString() {
     return "HistoricActivityInstanceEntity[activityId=" + activityId + ", activityName=" + activityName + "]";
   }

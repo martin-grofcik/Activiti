@@ -14,7 +14,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.activiti.bpmn.constants.BpmnXMLConstants;
-import org.activiti.bpmn.converter.child.ActivitiEventListenerParser;
 import org.activiti.bpmn.converter.child.BaseChildElementParser;
 import org.activiti.bpmn.converter.child.CancelEventDefinitionParser;
 import org.activiti.bpmn.converter.child.CompensateEventDefinitionParser;
@@ -57,7 +56,6 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
     addGenericParser(new DocumentationParser());
     addGenericParser(new ErrorEventDefinitionParser());
     addGenericParser(new ExecutionListenerParser());
-    addGenericParser(new ActivitiEventListenerParser());
     addGenericParser(new FieldExtensionParser());
     addGenericParser(new FormPropertyParser());
     addGenericParser(new IOSpecificationParser());
@@ -291,14 +289,11 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
   
   public static String convertToDelimitedString(List<String> stringList) {
     StringBuilder resultString = new StringBuilder();
-    
-    if(stringList != null) {
-    	for (String result : stringList) {
-    		if (resultString.length() > 0) {
-    			resultString.append(",");
-    		}
-    		resultString.append(result);
-    	}
+    for (String result : stringList) {
+      if (resultString.length() > 0) {
+        resultString.append(",");
+      }
+      resultString.append(result);
     }
     return resultString.toString();
   }
@@ -310,7 +305,7 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
    * @param element
    * @param blackList
    */
-  public static void addCustomAttributes(XMLStreamReader xtr, BaseElement element, List<ExtensionAttribute>... blackLists) {
+  public static void addCustomAttributes(XMLStreamReader xtr, BaseElement element, List<ExtensionAttribute> blackList) {
     for (int i = 0; i < xtr.getAttributeCount(); i++) {
       ExtensionAttribute extensionAttribute = new ExtensionAttribute();
       extensionAttribute.setName(xtr.getAttributeLocalName(i));
@@ -319,7 +314,7 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
       if (StringUtils.isNotEmpty(xtr.getAttributePrefix(i))) {
         extensionAttribute.setNamespacePrefix(xtr.getAttributePrefix(i));
       }
-      if (!isBlacklisted(extensionAttribute, blackLists))
+      if (!isBlacklisted(extensionAttribute, blackList))
         element.addAttribute(extensionAttribute);
     }
   }
@@ -330,12 +325,12 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
    * @param xtw
    * @param blackList
    */
-  public static void writeCustomAttributes(Collection<List<ExtensionAttribute>> attributes, XMLStreamWriter xtw, List<ExtensionAttribute>... blackLists) throws XMLStreamException {
+  public static void writeAttribute(Collection<List<ExtensionAttribute>> attributes, XMLStreamWriter xtw, List<ExtensionAttribute> blackList) throws XMLStreamException {
     Map<String, String> localNamespaces = new LinkedHashMap<String, String>();
     for (List<ExtensionAttribute> attributeList : attributes) {
       if (attributeList != null && !attributeList.isEmpty()) {
         for (ExtensionAttribute attribute : attributeList) {
-          if ( !isBlacklisted(attribute, blackLists)) {
+          if ( !isBlacklisted(attribute, blackList)) {
             if (attribute.getNamespacePrefix() == null) {
               if (attribute.getNamespace() == null)
                 xtw.writeAttribute(attribute.getName(), attribute.getValue());
@@ -343,7 +338,7 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
                 xtw.writeAttribute(attribute.getNamespace(), attribute.getName(), attribute.getValue());
               }
             } else {
-              if (!localNamespaces.containsKey(attribute.getNamespacePrefix())) {
+              if ( !localNamespaces.containsKey(attribute.getNamespacePrefix())) {
                 localNamespaces.put(attribute.getNamespacePrefix(), attribute.getNamespace());
                 xtw.writeNamespace(attribute.getNamespacePrefix(), attribute.getNamespace());
               }
@@ -356,17 +351,15 @@ public class BpmnXMLUtil implements BpmnXMLConstants {
     }
   }
 
-  protected static boolean isBlacklisted(ExtensionAttribute attribute, List<ExtensionAttribute>... blackLists) {
-    if (blackLists != null) {
-      for (List<ExtensionAttribute> blackList : blackLists) {
-        for (ExtensionAttribute blackAttribute : blackList) {
-          if (blackAttribute.getName().equals(attribute.getName())) {
-            if ( blackAttribute.getNamespace() != null && attribute.getNamespace() != null
-                && blackAttribute.getNamespace().equals(attribute.getNamespace()))
-              return true;
-            if (blackAttribute.getNamespace() == null && attribute.getNamespace() == null)
-              return true;
-          }
+  private static boolean isBlacklisted(ExtensionAttribute attribute, List<ExtensionAttribute> blackList) {
+    if (blackList != null) {
+      for (ExtensionAttribute blackAttribute : blackList){
+        if (blackAttribute.getName().equals(attribute.getName())) {
+          if ( blackAttribute.getNamespace() != null && attribute.getNamespace() != null
+              && blackAttribute.getNamespace().equals(attribute.getNamespace()))
+            return true;
+          if (blackAttribute.getNamespace() == null && attribute.getNamespace() == null)
+            return true;
         }
       }
     }

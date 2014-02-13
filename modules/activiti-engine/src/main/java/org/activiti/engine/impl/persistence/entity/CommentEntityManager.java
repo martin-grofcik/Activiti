@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.activiti.engine.ActivitiException;
-import org.activiti.engine.delegate.event.ActivitiEventType;
-import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.db.PersistentObject;
 import org.activiti.engine.impl.persistence.AbstractManager;
 import org.activiti.engine.task.Comment;
@@ -34,41 +32,11 @@ public class CommentEntityManager extends AbstractManager {
   public void delete(PersistentObject persistentObject) {
     checkHistoryEnabled();
     super.delete(persistentObject);
-    
-    Comment comment = (Comment) persistentObject;
-    if(getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
-    	// Forced to fetch the process-instance to associate the right process definition
-    	String processDefinitionId = null;
-    	String processInstanceId = comment.getProcessInstanceId();
-    	if(comment.getProcessInstanceId() != null) {
-    		ExecutionEntity process = getProcessInstanceManager().findExecutionById(comment.getProcessInstanceId());
-    		if(process != null) {
-    			processDefinitionId = process.getProcessDefinitionId();
-    		}
-    	}
-    	getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-    			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_DELETED, persistentObject, processInstanceId, processInstanceId, processDefinitionId));
-    }
   }
 
   public void insert(PersistentObject persistentObject) {
     checkHistoryEnabled();
     super.insert(persistentObject);
-    
-    Comment comment = (Comment) persistentObject;
-    if(getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
-    	// Forced to fetch the process-instance to associate the right process definition
-    	String processDefinitionId = null;
-    	String processInstanceId = comment.getProcessInstanceId();
-    	if(comment.getProcessInstanceId() != null) {
-    		ExecutionEntity process = getProcessInstanceManager().findExecutionById(comment.getProcessInstanceId());
-    		if(process != null) {
-    			processDefinitionId = process.getProcessDefinitionId();
-    		}
-    	}
-    	getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-    			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_CREATED, persistentObject, processInstanceId, processInstanceId, processDefinitionId));
-    }
   }
 
   @SuppressWarnings("unchecked")

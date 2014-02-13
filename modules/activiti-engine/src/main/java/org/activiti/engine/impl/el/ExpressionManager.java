@@ -12,6 +12,7 @@
  */
 package org.activiti.engine.impl.el;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.activiti.engine.delegate.Expression;

@@ -17,11 +17,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.activiti.engine.ActivitiException;
-import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.rest.common.api.ActivitiUtil;
 import org.activiti.rest.common.api.SecuredResource;
+import org.restlet.data.Status;
 import org.restlet.representation.InputRepresentation;
 import org.restlet.resource.Get;
+import org.restlet.resource.ResourceException;
 
 /**
  * @author Tijs Rademakers
@@ -49,7 +50,7 @@ public class TaskFormResource extends SecuredResource {
       throw new ActivitiException("The form for task '" + taskId + "' cannot be rendered using the rest api.");
     
     } else {
-      throw new ActivitiObjectNotFoundException("There is no form for task '" + taskId + "'.", null);
+      throw new ResourceException(Status.CLIENT_ERROR_NOT_FOUND, "There is no form for task '" + taskId + "'.");
     }
   }
 }

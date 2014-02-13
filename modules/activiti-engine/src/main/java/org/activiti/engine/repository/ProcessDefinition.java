@@ -66,8 +66,4 @@ public interface ProcessDefinition {
   
   /** Returns true if the process definition is in suspended state. */
   boolean isSuspended();
-  
-  /** The tenant identifier of this process definition */
-  String getTenantId();
-  
 }

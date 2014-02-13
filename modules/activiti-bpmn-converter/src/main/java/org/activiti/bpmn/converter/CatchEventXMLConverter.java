@@ -57,6 +57,6 @@ public class CatchEventXMLConverter extends BaseBpmnXMLConverter {
   @Override
   protected void writeAdditionalChildElements(BaseElement element, XMLStreamWriter xtw) throws Exception {
     IntermediateCatchEvent catchEvent = (IntermediateCatchEvent) element;
-    writeEventDefinitions(catchEvent, catchEvent.getEventDefinitions(), xtw);
+    writeEventDefinitions(catchEvent.getEventDefinitions(), xtw);
   }
 }

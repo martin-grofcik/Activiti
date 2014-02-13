@@ -147,12 +147,5 @@ public class JobEntityManager extends AbstractManager {
   public long findJobCountByQueryCriteria(JobQueryImpl jobQuery) {
     return (Long) getDbSqlSession().selectOne("selectJobCountByQueryCriteria", jobQuery);
   }
-  
-  public void updateJobTenantIdForDeployment(String deploymentId, String newTenantId) {
-  	HashMap<String, Object> params = new HashMap<String, Object>();
-  	params.put("deploymentId", deploymentId);
-  	params.put("tenantId", newTenantId);
-  	getDbSqlSession().update("updateJobTenantIdForDeployment", params);
-  }
 
 }

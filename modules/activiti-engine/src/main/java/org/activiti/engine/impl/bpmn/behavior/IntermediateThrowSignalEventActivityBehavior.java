@@ -58,9 +58,7 @@ public class IntermediateThrowSignalEventActivityBehavior extends AbstractBpmnAc
       signalEventSubscriptionEntity.eventReceived(null, signalDefinition.isAsync());
     }
     
-    if (execution.getActivity() != null) { // dont continue if process has already finished
-      leave(execution);
-    }
+    leave(execution);        
   }
  
 }

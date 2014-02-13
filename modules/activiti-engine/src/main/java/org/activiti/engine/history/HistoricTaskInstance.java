@@ -76,20 +76,14 @@ public interface HistoricTaskInstance {
   /** Task form key. */
   String getFormKey();
   
-  /** Task priority */
+  /** Task priority **/
   int getPriority();
   
-  /** Task due date */
+  /** Task due date **/
   Date getDueDate();
-  
-  /** Task category */
-  String getCategory();
   
   /** The parent task of this task, in case this task was a subtask */
   String getParentTaskId();
-  
-  /** Returns the tenant identifier for this historic task */
-  String getTenantId();
 
   /** Returns the local task variables if requested in the task query */
   Map<String, Object> getTaskLocalVariables();
