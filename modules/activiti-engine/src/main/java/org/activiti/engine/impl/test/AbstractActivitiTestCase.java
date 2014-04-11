@@ -13,56 +13,39 @@
 
 package org.activiti.engine.impl.test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Callable;
-
 import junit.framework.AssertionFailedError;
-
-import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.bpmn.model.EndEvent;
-import org.activiti.bpmn.model.SequenceFlow;
-import org.activiti.bpmn.model.StartEvent;
-import org.activiti.bpmn.model.UserTask;
-import org.activiti.engine.ActivitiException;
-import org.activiti.engine.FormService;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.IdentityService;
-import org.activiti.engine.ManagementService;
-import org.activiti.engine.ProcessEngine;
-import org.activiti.engine.RepositoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
+import org.activiti.bpmn.model.*;
+import org.activiti.engine.*;
 import org.activiti.engine.impl.ProcessEngineImpl;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
+import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.db.DbSqlSession;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandConfig;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
 import org.activiti.engine.impl.jobexecutor.JobExecutor;
-import org.activiti.engine.impl.util.ClockUtil;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.junit.Assert;
 
+import java.util.*;
+import java.util.concurrent.Callable;
+
 
 /**
  * @author Tom Baeyens
+ * @author Joram Barrez
  */
 public abstract class AbstractActivitiTestCase extends PvmTestCase {
 
-  private static final List<String> TABLENAMES_EXCLUDED_FROM_DB_CLEAN_CHECK = Arrays.asList(
-    "ACT_GE_PROPERTY"
-  );
+  private static final List<String> TABLENAMES_EXCLUDED_FROM_DB_CLEAN_CHECK = Arrays.asList("ACT_GE_PROPERTY");
 
   protected ProcessEngine processEngine; 
   
-  protected String deploymentId;
+  protected String deploymentIdFromDeploymentAnnotation;
+  protected List<String> deploymentIdsForAutoCleanup = new ArrayList<String>();
   protected Throwable exception;
 
   protected ProcessEngineConfigurationImpl processEngineConfiguration;
@@ -95,9 +78,10 @@ public abstract class AbstractActivitiTestCase extends PvmTestCase {
       initializeServices();
     }
 
+    String deploymentId = null;
     try {
       
-      deploymentId = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName());
+    	deploymentIdFromDeploymentAnnotation = TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName()); 
       
       super.runBare();
 
@@ -114,9 +98,18 @@ public abstract class AbstractActivitiTestCase extends PvmTestCase {
       throw e;
       
     } finally {
-      TestHelper.annotationDeploymentTearDown(processEngine, deploymentId, getClass(), getName());
+    	if (deploymentIdFromDeploymentAnnotation != null) {
+    		TestHelper.annotationDeploymentTearDown(processEngine, deploymentIdFromDeploymentAnnotation, getClass(), getName());
+    		deploymentIdFromDeploymentAnnotation = null;
+    	}
+    	
+    	for (String autoDeletedDeploymentId : deploymentIdsForAutoCleanup) {
+    		repositoryService.deleteDeployment(autoDeletedDeploymentId, true);
+    	}
+    	deploymentIdsForAutoCleanup.clear();
+    	
       assertAndEnsureCleanDb();
-      ClockUtil.reset();
+      processEngineConfiguration.getClock().reset();
       
       // Can't do this in the teardown, as the teardown will be called as part of the super.runBare
       closeDownProcessEngine();
@@ -339,7 +332,7 @@ public abstract class AbstractActivitiTestCase extends PvmTestCase {
   	Deployment deployment = repositoryService.createDeployment()
   			.addBpmnModel("oneTasktest.bpmn20.xml", bpmnModel).deploy();
   	
-  	this.deploymentId = deployment.getId(); // For auto-cleanup
+  	deploymentIdsForAutoCleanup.add(deployment.getId()); // For auto-cleanup
   	
   	ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
   			.deploymentId(deployment.getId()).singleResult();
@@ -351,8 +344,8 @@ public abstract class AbstractActivitiTestCase extends PvmTestCase {
   	Deployment deployment = repositoryService.createDeployment()
   			.addBpmnModel("twoTasksTestProcess.bpmn20.xml", bpmnModel).deploy();
   	
-  	this.deploymentId = deployment.getId(); // For auto-cleanup
-  	
+  	deploymentIdsForAutoCleanup.add(deployment.getId()); // For auto-cleanup
+
   	ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
   			.deploymentId(deployment.getId()).singleResult();
   	return processDefinition.getId(); 

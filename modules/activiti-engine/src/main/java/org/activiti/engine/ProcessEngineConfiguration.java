@@ -22,6 +22,7 @@ import org.activiti.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.jobexecutor.JobExecutor;
+import org.activiti.engine.runtime.Clock;
 
 
 /** Configuration information from which a process engine can be build.
@@ -90,6 +91,9 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
   /** Upon building of the process engine, a check is performed and 
    * an update of the schema is performed if it is necessary. */
   public static final String DB_SCHEMA_UPDATE_TRUE = "true";
+  
+  /** The tenant id indicating 'no tenant' */
+  public static final String NO_TENANT_ID = "";
 
   protected String processEngineName = ProcessEngines.NAME_DEFAULT;
   protected int idBlockSize = 100;
@@ -130,7 +134,8 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
   protected Object jpaEntityManagerFactory;
   protected boolean jpaHandleTransaction;
   protected boolean jpaCloseEntityManager;
-  
+
+  protected Clock clock;
   protected JobExecutor jobExecutor;
   
   /**
@@ -154,6 +159,15 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
    * https://jira.codehaus.org/browse/ACT-1062
    */
   protected String databaseSchema = null;
+  
+  /**
+   * Set to true in case the defined databaseTablePrefix is a schema-name, instead of an actual table name
+   * prefix. This is relevant for checking if Activiti-tables exist, the databaseTablePrefix will not be used here
+   * - since the schema is taken into account already, adding a prefix for the table-check will result in wrong table-names.
+   * 
+   *  @since 5.15
+   */
+  protected boolean tablePrefixIsSchema = false;
   
   protected boolean isCreateDiagramOnDeploy = true;
   
@@ -596,6 +610,15 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
     return this;
   }
   
+  public ProcessEngineConfiguration setTablePrefixIsSchema(boolean tablePrefixIsSchema) {
+	  this.tablePrefixIsSchema = tablePrefixIsSchema;
+	  return this;
+  }
+  
+  public boolean isTablePrefixIsSchema() {
+	  return tablePrefixIsSchema;
+  }
+  
   public String getDatabaseSchema() {
     return databaseSchema;
   }
@@ -613,7 +636,16 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
     this.xmlEncoding = xmlEncoding;
     return this;
   }
-  
+
+  public Clock getClock() {
+    return clock;
+  }
+
+  public ProcessEngineConfiguration setClock(Clock clock) {
+    this.clock = clock;
+    return this;
+  }
+
   public JobExecutor getJobExecutor() {
     return jobExecutor;
   }

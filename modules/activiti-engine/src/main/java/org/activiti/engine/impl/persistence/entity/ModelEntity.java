@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.impl.db.HasRevision;
 import org.activiti.engine.impl.db.PersistentObject;
 import org.activiti.engine.repository.Model;
@@ -27,7 +28,7 @@ import org.activiti.engine.repository.Model;
  * @author Tijs Rademakers
  * @author Joram Barrez
  */
-public class ModelEntity implements Serializable, Model, HasRevision, PersistentObject {
+public class ModelEntity implements Model, HasRevision, PersistentObject, Serializable {
 
   private static final long serialVersionUID = 1L;
   
@@ -43,7 +44,7 @@ public class ModelEntity implements Serializable, Model, HasRevision, Persistent
   protected String deploymentId;
   protected String editorSourceValueId;
   protected String editorSourceExtraValueId;
-  protected String tenantId;
+  protected String tenantId = ProcessEngineConfiguration.NO_TENANT_ID;
 
   public Object getPersistentState() {
     Map<String, Object> persistentState = new HashMap<String, Object>();

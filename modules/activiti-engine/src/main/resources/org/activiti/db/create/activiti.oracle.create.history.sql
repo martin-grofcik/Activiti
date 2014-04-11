@@ -11,7 +11,7 @@ create table ACT_HI_PROCINST (
     END_ACT_ID_ NVARCHAR2(255),
     SUPER_PROCESS_INSTANCE_ID_ NVARCHAR2(64),
     DELETE_REASON_ NVARCHAR2(2000),
-    TENANT_ID_ NVARCHAR2(255),
+    TENANT_ID_ NVARCHAR2(255) default '',
     primary key (ID_),
     unique (PROC_INST_ID_)
 );
@@ -30,7 +30,7 @@ create table ACT_HI_ACTINST (
     START_TIME_ TIMESTAMP(6) not null,
     END_TIME_ TIMESTAMP(6),
     DURATION_ NUMBER(19,0),
-    TENANT_ID_ NVARCHAR2(255),
+    TENANT_ID_ NVARCHAR2(255) default '',
     primary key (ID_)
 );
 
@@ -54,7 +54,7 @@ create table ACT_HI_TASKINST (
     DUE_DATE_ TIMESTAMP(6),
     FORM_KEY_ NVARCHAR2(255),
     CATEGORY_ NVARCHAR2(255),
-    TENANT_ID_ NVARCHAR2(255),
+    TENANT_ID_ NVARCHAR2(255) default '',
     primary key (ID_)
 );
 
@@ -70,8 +70,6 @@ create table ACT_HI_VARINST (
     DOUBLE_ NUMBER(*,10),
     LONG_ NUMBER(19,0),
     TEXT_ NVARCHAR2(2000),
-    CREATE_TIME_ timestamp not null,
-    LAST_UPDATED_TIME_ timestamp not null,
     TEXT2_ NVARCHAR2(2000),
     CREATE_TIME_ TIMESTAMP(6),
     LAST_UPDATED_TIME_ TIMESTAMP(6),

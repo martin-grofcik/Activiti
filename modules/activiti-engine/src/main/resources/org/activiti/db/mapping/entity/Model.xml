@@ -43,7 +43,7 @@
   
   <!-- MODEL DELETE -->
   
-  <delete id="deleteModel" parameterType="string">
+  <delete id="deleteModel" parameterType="org.activiti.engine.impl.persistence.entity.ModelEntity">
     delete from ${prefix}ACT_RE_MODEL where ID_ = #{id} and REV_ = #{revision}
   </delete>
 
@@ -126,7 +126,7 @@
         and RES.TENANT_ID_ like #{tenantIdLike}
       </if>
       <if test="withoutTenantId">
-        and RES.TENANT_ID_ is null
+        and (RES.TENANT_ID_ = '' or RES.TENANT_ID_ is null)
       </if>
     </where>
   </sql>

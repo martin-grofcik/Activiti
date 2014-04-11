@@ -304,7 +304,16 @@ public class DbSqlSession implements Session {
     }    
     List loadedObjects = sqlSession.selectList(statement, parameter);
     return filterLoadedObjects(loadedObjects);
-  }  
+  }
+  
+  @SuppressWarnings({ "rawtypes" })
+  public List selectListWithRawParameterWithoutFilter(String statement, Object parameter, int firstResult, int maxResults) {
+    statement = dbSqlSessionFactory.mapStatement(statement);    
+    if (firstResult == -1 ||  maxResults == -1) {
+      return Collections.EMPTY_LIST;
+    }    
+    return sqlSession.selectList(statement, parameter);
+  }
 
   public Object selectOne(String statement, Object parameter) {
     statement = dbSqlSessionFactory.mapStatement(statement);
@@ -786,7 +795,12 @@ public class DbSqlSession implements Session {
   }
 
   public boolean isTablePresent(String tableName) {
-    tableName = prependDatabaseTablePrefix(tableName);
+  	// ACT-1610: in case the prefix IS the schema itself, we don't add the prefix, since the
+  	// check is already aware of the schema
+  	if(!dbSqlSessionFactory.isTablePrefixIsSchema()) {
+  		tableName = prependDatabaseTablePrefix(tableName);
+  	}
+  	
     Connection connection = null;
     try {
       connection = sqlSession.getConnection();
@@ -1089,6 +1103,10 @@ public class DbSqlSession implements Session {
     if (org.activiti.engine.ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP.equals(databaseSchemaUpdate)) {
       dbSchemaDrop();
     }
+  }
+  
+  public <T> T getCustomMapper(Class<T> type) {
+	  return sqlSession.getMapper(type);
   }
 
   // query factory methods ////////////////////////////////////////////////////  
