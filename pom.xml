@@ -895,6 +895,20 @@
     </profile>
   </profiles>
 
+    <distributionManagement>
+        <repository>
+            <id>edorasware-mirror</id>
+            <name>Repository for deployment of releases</name>
+            <url>${edorasware-deploy-path-releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>edorasware-mirror</id>
+            <name>Repository for deployment of snapshots</name>
+            <url>${edorasware-deploy-path-snapshots}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
   <!-- Various information, not used by the build -->
 
   <url>http://activiti.org</url>
