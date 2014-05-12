@@ -21,13 +21,14 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.test.Deployment;
 import org.activiti.rest.service.BaseRestTestCase;
 import org.activiti.rest.service.api.RestUrls;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.restlet.data.Status;
 import org.restlet.representation.Representation;
 import org.restlet.resource.ClientResource;
 import org.restlet.resource.ResourceException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Test for all REST-operations related to a single Process instance resource.
@@ -174,10 +175,10 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     
     JsonNode responseNode = objectMapper.readTree(response.getStream());
     assertNotNull(responseNode);
-    assertEquals(processInstance.getId(), responseNode.get("id").getTextValue());
+    assertEquals(processInstance.getId(), responseNode.get("id").textValue());
     assertTrue(responseNode.get("businessKey").isNull());
-    assertEquals("processTask", responseNode.get("activityId").getTextValue());
-    assertFalse(responseNode.get("suspended").getBooleanValue());
+    assertEquals("processTask", responseNode.get("activityId").textValue());
+    assertFalse(responseNode.get("suspended").booleanValue());
     
     assertTrue(responseNode.get("url").asText().endsWith(
             RestUrls.createRelativeResourceUrl(RestUrls.URL_PROCESS_INSTANCE, processInstance.getId())));
@@ -197,10 +198,10 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     
     responseNode = objectMapper.readTree(response.getStream());
     assertNotNull(responseNode);
-    assertEquals(processInstance.getId(), responseNode.get("id").getTextValue());
+    assertEquals(processInstance.getId(), responseNode.get("id").textValue());
     assertTrue(responseNode.get("businessKey").isNull());
-    assertEquals("processTask", responseNode.get("activityId").getTextValue());
-    assertFalse(responseNode.get("suspended").getBooleanValue());
+    assertEquals("processTask", responseNode.get("activityId").textValue());
+    assertFalse(responseNode.get("suspended").booleanValue());
     
     assertTrue(responseNode.get("url").asText().endsWith(
             RestUrls.createRelativeResourceUrl(RestUrls.URL_PROCESS_INSTANCE, processInstance.getId())));
@@ -219,10 +220,10 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     
     responseNode = objectMapper.readTree(response.getStream());
     assertNotNull(responseNode);
-    assertEquals(processInstance.getId(), responseNode.get("id").getTextValue());
+    assertEquals(processInstance.getId(), responseNode.get("id").textValue());
     assertTrue(responseNode.get("businessKey").isNull());
-    assertEquals("processTask", responseNode.get("activityId").getTextValue());
-    assertFalse(responseNode.get("suspended").getBooleanValue());
+    assertEquals("processTask", responseNode.get("activityId").textValue());
+    assertFalse(responseNode.get("suspended").booleanValue());
     
     assertTrue(responseNode.get("url").asText().endsWith(
             RestUrls.createRelativeResourceUrl(RestUrls.URL_PROCESS_INSTANCE, processInstance.getId())));
@@ -239,7 +240,7 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     
     responseNode = objectMapper.readTree(response.getStream());
     assertNotNull(responseNode);
-    assertEquals("myBusinessKey", responseNode.get("businessKey").getTextValue());
+    assertEquals("myBusinessKey", responseNode.get("businessKey").textValue());
   }
   
   
@@ -302,6 +303,8 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     JsonNode responseNode = objectMapper.readTree(client.getResponseEntity().getStream());
     assertEquals("processTask", responseNode.get("activityId").asText());
     assertEquals(false, responseNode.get("ended").asBoolean());
+    JsonNode variablesArrayNode = responseNode.get("variables");
+    assertEquals(0, variablesArrayNode.size());
     
     ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().singleResult();
     assertNotNull(processInstance);
@@ -317,6 +320,65 @@ public class ProcessInstanceCollectionResourceTest extends BaseRestTestCase {
     assertEquals(123.456, processVariables.get("doubleVariable"));
     assertEquals(Boolean.TRUE, processVariables.get("booleanVariable"));
     assertEquals(varCal.getTime(), processVariables.get("dateVariable"));
+  }
+  
+  /**
+   * Test starting a process instance passing in variables to set.
+   */
+  @Deployment(resources = {"org/activiti/rest/service/api/runtime/ProcessInstanceResourceTest.process-one.bpmn20.xml"})
+  public void testStartProcessWithVariablesAndReturnVariables() throws Exception {
+    ArrayNode variablesNode = objectMapper.createArrayNode();
+    
+    // String variable
+    ObjectNode stringVarNode = variablesNode.addObject();
+    stringVarNode.put("name", "stringVariable");
+    stringVarNode.put("value", "simple string value");
+    stringVarNode.put("type", "string");
+
+    ObjectNode integerVarNode = variablesNode.addObject();
+    integerVarNode.put("name", "integerVariable");
+    integerVarNode.put("value", 1234);
+    integerVarNode.put("type", "integer");
+    
+    ClientResource client = getAuthenticatedClient(RestUrls.createRelativeResourceUrl(RestUrls.URL_PROCESS_INSTANCE_COLLECTION));
+    ObjectNode requestNode = objectMapper.createObjectNode();
+    
+    // Start using process definition key, passing in variables
+    requestNode.put("processDefinitionKey", "processOne");
+    requestNode.put("returnVariables", true);
+    requestNode.put("variables", variablesNode);
+    
+    client.post(requestNode);
+    assertEquals(Status.SUCCESS_CREATED, client.getResponse().getStatus());
+    
+    JsonNode responseNode = objectMapper.readTree(client.getResponseEntity().getStream());
+    assertEquals("processTask", responseNode.get("activityId").asText());
+    assertEquals(false, responseNode.get("ended").asBoolean());
+    JsonNode variablesArrayNode = responseNode.get("variables");
+    assertEquals(2, variablesArrayNode.size());
+    for (JsonNode variableNode : variablesArrayNode) {
+      if ("stringVariable".equals(variableNode.get("name").asText())) {
+        assertEquals("simple string value", variableNode.get("value").asText());
+        assertEquals("string", variableNode.get("type").asText());
+        
+      } else if ("integerVariable".equals(variableNode.get("name").asText())) {
+        assertEquals(1234, variableNode.get("value").asInt());
+        assertEquals("integer", variableNode.get("type").asText());
+      
+      } else {
+        fail("Unexpected variable " + variableNode.get("name").asText());
+      }
+    }
+    
+    ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().singleResult();
+    assertNotNull(processInstance);
+    
+    // Check if engine has correct variables set
+    Map<String, Object> processVariables = runtimeService.getVariables(processInstance.getId());
+    assertEquals(2, processVariables.size());
+    
+    assertEquals("simple string value", processVariables.get("stringVariable"));
+    assertEquals(1234, processVariables.get("integerVariable"));
   }
   
   @Deployment(resources = {"org/activiti/rest/service/api/oneTaskProcess.bpmn20.xml"})

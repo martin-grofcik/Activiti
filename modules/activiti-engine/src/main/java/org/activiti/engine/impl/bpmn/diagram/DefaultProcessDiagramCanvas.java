@@ -65,13 +65,13 @@ import org.slf4j.LoggerFactory;
  * Some of the icons used are licenced under a Creative Commons Attribution 2.5
  * License, see http://www.famfamfam.com/lab/icons/silk/
  * 
- * @see ProcessDiagramGenerator
+ * @see org.activiti.engine.impl.bpmn.diagram.DefaultProcessDiagramGenerator
  * @author Joram Barrez
  */
-public class ProcessDiagramCanvas {
+public class DefaultProcessDiagramCanvas {
 
-  protected static final Logger LOGGER = LoggerFactory.getLogger(ProcessDiagramCanvas.class);
-  public enum SHAPE_TYPE {Rectangle, Rhombus, Ellipse};
+  protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultProcessDiagramCanvas.class);
+  public enum SHAPE_TYPE {Rectangle, Rhombus, Ellipse}
 
   // Predefined sized
   protected static final int ARROW_WIDTH = 5;
@@ -104,7 +104,7 @@ public class ProcessDiagramCanvas {
   protected static Stroke END_EVENT_STROKE = new BasicStroke(3.0f);
   protected static Stroke MULTI_INSTANCE_STROKE = new BasicStroke(1.3f);
   protected static Stroke EVENT_SUBPROCESS_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f,  new float[] { 1.0f }, 0.0f);
-  protected static Stroke INTERRUPTING_EVENT_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f,  new float[] { 4.0f, 3.0f }, 0.0f);
+  protected static Stroke NON_INTERRUPTING_EVENT_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f,  new float[] { 4.0f, 3.0f }, 0.0f);
   protected static Stroke HIGHLIGHT_FLOW_STROKE = new BasicStroke(1.3f);
   protected static Stroke ANNOTATION_STROKE = new BasicStroke(2.0f);
   protected static Stroke ASSOCIATION_STROKE = new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.0f,  new float[] { 2.0f, 2.0f }, 0.0f);
@@ -159,7 +159,7 @@ public class ProcessDiagramCanvas {
   /**
    * Creates an empty canvas with given width and height.
    */
-  public ProcessDiagramCanvas(int width, int height) {
+  public DefaultProcessDiagramCanvas(int width, int height) {
     this.canvasWidth = width;
     this.canvasHeight = height;
     
@@ -197,7 +197,7 @@ public class ProcessDiagramCanvas {
    *          Hint that will be used when generating the image. Parts that fall
    *          below minX on the horizontal scale will be cropped.
    */
-  public ProcessDiagramCanvas(int width, int height, int minX, int minY) {
+  public DefaultProcessDiagramCanvas(int width, int height, int minX, int minY) {
     this(width, height);
     this.minX = minX;
     this.minY = minY;
@@ -294,8 +294,8 @@ public class ProcessDiagramCanvas {
     g.fill(outerCircle);
 
     g.setPaint(originalPaint);
-    if (isInterrupting) 
-      g.setStroke(INTERRUPTING_EVENT_STROKE);
+    if (isInterrupting == false) 
+      g.setStroke(NON_INTERRUPTING_EVENT_STROKE);
     g.draw(outerCircle);
     g.setStroke(originalStroke);
     g.draw(innerCircle);
@@ -331,11 +331,11 @@ public class ProcessDiagramCanvas {
   }
 
   public void drawThrowingSignalEvent(int x, int y, int width, int height) {
-    drawCatchingEvent(x, y, width, height, false, SIGNAL_THROW_IMAGE);
+    drawCatchingEvent(x, y, width, height, true, SIGNAL_THROW_IMAGE);
   }
   
   public void drawThrowingNoneEvent(int x, int y, int width, int height) {
-    drawCatchingEvent(x, y, width, height, false, null);
+    drawCatchingEvent(x, y, width, height, true, null);
   }
 
   public void drawSequenceflow(int srcX, int srcY, int targetX, int targetY, boolean conditional) {
@@ -568,6 +568,11 @@ public class ProcessDiagramCanvas {
     g.setTransform(originalTransformation);
   }
 
+  public void drawTask(Image icon, String name, int x, int y, int width, int height) {
+    drawTask(name, x, y, width, height);
+    g.drawImage(icon, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+  }
+
   public void drawTask(String name, int x, int y, int width, int height) {
     drawTask(name, x, y, width, height, false);
   }
@@ -716,38 +721,31 @@ public class ProcessDiagramCanvas {
   }
 
   public void drawUserTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(USERTASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(USERTASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawScriptTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(SCRIPTTASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(SCRIPTTASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawServiceTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(SERVICETASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(SERVICETASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawReceiveTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(RECEIVETASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(RECEIVETASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawSendTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(SENDTASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(SENDTASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawManualTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(MANUALTASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(MANUALTASK_IMAGE, name, x, y, width, height);
   }
   
   public void drawBusinessRuleTask(String name, int x, int y, int width, int height) {
-    drawTask(name, x, y, width, height);
-    g.drawImage(BUSINESS_RULE_TASK_IMAGE, x + ICON_PADDING, y + ICON_PADDING, ICON_SIZE, ICON_SIZE, null);
+    drawTask(BUSINESS_RULE_TASK_IMAGE, name, x, y, width, height);
   }
 
   public void drawExpandedSubProcess(String name, int x, int y, int width, int height, Boolean isTriggeredByEvent) {
@@ -767,8 +765,10 @@ public class ProcessDiagramCanvas {
       g.draw(rect);
     }
 
-    String text = fitTextToWidth(name, width);
-    g.drawString(text, x + 10, y + 15);
+    if (name != null && !name.isEmpty()) {
+      String text = fitTextToWidth(name, width);
+      g.drawString(text, x + 10, y + 15);
+    }
   }
 
   public void drawCollapsedSubProcess(String name, int x, int y, int width, int height, Boolean isTriggeredByEvent) {
@@ -806,7 +806,7 @@ public class ProcessDiagramCanvas {
         drawCollapsedMarker(x - MARKER_WIDTH / 2 - 2, y, width, height);
         if (multiInstanceSequential) {
           drawMultiInstanceMarker(true, x + MARKER_WIDTH / 2 + 2, y, width, height);
-        } else if (multiInstanceParallel) {
+        } else {
           drawMultiInstanceMarker(false, x + MARKER_WIDTH / 2 + 2, y, width, height);
         }
       }
@@ -879,7 +879,7 @@ public class ProcessDiagramCanvas {
     drawGateway(x, y, width, height);
     double scale = .6;
     
-    drawCatchingEvent((int)(x + width*(1-scale)/2), (int)(y + height*(1-scale)/2), (int)(width*scale), (int)(height*scale), false, null);
+    drawCatchingEvent((int)(x + width*(1-scale)/2), (int)(y + height*(1-scale)/2), (int)(width*scale), (int)(height*scale), true, null);
     
     double r = width / 6.;
     

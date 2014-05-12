@@ -268,11 +268,6 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     subProcessInstance.setProcessDefinition((ProcessDefinitionImpl) processDefinition);
     subProcessInstance.setProcessInstance(subProcessInstance);
 
-    if (Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
-      Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-        ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_CREATED, subProcessInstance));
-    }
-
     Context.getCommandContext().getHistoryManager()
       .recordSubProcessInstanceStart(this, subProcessInstance);
 
@@ -560,7 +555,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   }
   
   public void performOperation(AtomicOperation executionOperation) {
-    if(executionOperation.isAsync(this)) {
+    if (executionOperation.isAsync(this)) {
       scheduleAtomicOperationAsync(executionOperation);
     } else {
       performOperationSync(executionOperation);
@@ -1094,27 +1089,6 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
     			ActivitiEventBuilder.createVariableEvent(ActivitiEventType.VARIABLE_UPDATED, variableInstance.getName(), value, variableInstance.getTaskId(), 
     					variableInstance.getExecutionId(), getProcessInstanceId(), getProcessDefinitionId()));
-    }
-  }
-  
-  @Override
-  protected void deleteVariableInstanceForExplicitUserCall(VariableInstanceEntity variableInstance,
-      ExecutionEntity sourceActivityExecution) {
-  	boolean dispatchEvent = Context.getProcessEngineConfiguration().getEventDispatcher()
-  			.isEnabled();
-  	
-  	Object oldValue = null;
-  	if(dispatchEvent) {
-  		oldValue = variableInstance.getValue();
-  	}
-    super.deleteVariableInstanceForExplicitUserCall(variableInstance, sourceActivityExecution);
-    
-    if(dispatchEvent) {
-      if(dispatchEvent) {
-      	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
-      			ActivitiEventBuilder.createVariableEvent(ActivitiEventType.VARIABLE_DELETED, variableInstance.getName(), oldValue, variableInstance.getTaskId(), 
-      					variableInstance.getExecutionId(), getProcessInstanceId(), getProcessDefinitionId()));
-      }
     }
   }
 

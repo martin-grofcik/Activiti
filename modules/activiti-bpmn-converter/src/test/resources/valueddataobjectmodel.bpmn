@@ -5,33 +5,38 @@
       <extensionElements>
         <activiti:value>Testing123</activiti:value>
       </extensionElements>
-	</dataObject>
+    </dataObject>
     <dataObject id="dObj2" name="BooleanTest" itemSubjectRef="xsd:boolean">
       <extensionElements>
         <activiti:value>true</activiti:value>
       </extensionElements>
-	</dataObject>
+    </dataObject>
     <dataObject id="dObj3" name="DateTest" itemSubjectRef="xsd:datetime">
       <extensionElements>
         <activiti:value>2013-09-16T11:23:00</activiti:value>
       </extensionElements>
-	</dataObject>
+    </dataObject>
     <dataObject id="dObj4" name="DoubleTest" itemSubjectRef="xsd:double">
       <extensionElements>
         <activiti:value>123456789</activiti:value>
       </extensionElements>
-	</dataObject>
+    </dataObject>
     <dataObject id="dObj5" name="IntegerTest" itemSubjectRef="xsd:int">
       <extensionElements>
         <activiti:value>123</activiti:value>
       </extensionElements>
-	</dataObject>
+    </dataObject>
     <dataObject id="dObj6" name="LongTest" itemSubjectRef="xsd:long">
       <extensionElements>
         <activiti:value>-123456</activiti:value>
         <activiti:testvalue>test</activiti:testvalue>
       </extensionElements>
-	</dataObject>
+    </dataObject>
+    <dataObject id="NoData" name="NoData" itemSubjectRef="xsd:datetime">
+      <extensionElements>
+        <activiti:value></activiti:value>
+      </extensionElements>
+    </dataObject>
     <startEvent id="start1"></startEvent>
     <endEvent id="end1"></endEvent>
     <subProcess id="subprocess1" name="subProcess">

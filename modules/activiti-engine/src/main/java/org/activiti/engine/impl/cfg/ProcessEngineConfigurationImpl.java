@@ -61,6 +61,7 @@ import org.activiti.engine.impl.ServiceImpl;
 import org.activiti.engine.impl.TaskServiceImpl;
 import org.activiti.engine.impl.bpmn.data.ItemInstance;
 import org.activiti.engine.impl.bpmn.deployer.BpmnDeployer;
+import org.activiti.engine.impl.bpmn.diagram.DefaultProcessDiagramGenerator;
 import org.activiti.engine.impl.bpmn.parser.BpmnParseHandlers;
 import org.activiti.engine.impl.bpmn.parser.BpmnParser;
 import org.activiti.engine.impl.bpmn.parser.factory.ActivityBehaviorFactory;
@@ -395,6 +396,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   protected void init() {
   	initConfigurators();
   	configuratorsBeforeInit();
+    initProcessDiagramGenerator();
     initHistoryLevel();
     initExpressionManager();
     initVariableTypes();
@@ -980,7 +982,7 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
         if (defaultBpmnParseHandler.getHandledTypes().size() != 1) {
           StringBuilder supportedTypes = new StringBuilder();
           for (Class<?> type : defaultBpmnParseHandler.getHandledTypes()) {
-            supportedTypes.append(" " + type.getCanonicalName() + " ");
+            supportedTypes.append(" ").append(type.getCanonicalName()).append(" ");
           }
           throw new ActivitiException("The default BPMN parse handlers should only support one type, but " + defaultBpmnParseHandler.getClass() 
                   + " supports " + supportedTypes.toString() + ". This is likely a programmatic error");
@@ -1015,6 +1017,12 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   private void initClock() {
     if (clock == null) {
       clock = new DefaultClockImpl();
+    }
+  }
+
+  protected void initProcessDiagramGenerator() {
+    if (processDiagramGenerator == null) {
+      processDiagramGenerator = new DefaultProcessDiagramGenerator();
     }
   }
 
@@ -1418,6 +1426,10 @@ public abstract class ProcessEngineConfigurationImpl extends ProcessEngineConfig
   
   public ProcessEngineConfigurationImpl setManagementService(ManagementService managementService) {
     this.managementService = managementService;
+    return this;
+  }
+  
+  public ProcessEngineConfiguration getProcessEngineConfiguration() {
     return this;
   }
   
