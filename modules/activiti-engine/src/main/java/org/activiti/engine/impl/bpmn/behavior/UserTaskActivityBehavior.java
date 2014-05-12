@@ -116,7 +116,6 @@ public class UserTaskActivityBehavior extends TaskActivityBehavior {
     }
 
     task.fireEvent(TaskListener.EVENTNAME_CREATE);
-
   }
 
   public void signal(ActivityExecution execution, String signalName, Object signalData) throws Exception {
