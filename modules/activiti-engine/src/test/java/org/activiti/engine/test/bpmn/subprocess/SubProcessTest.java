@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.test.PluggableActivitiTestCase;
 import org.activiti.engine.impl.util.CollectionUtil;
 import org.activiti.engine.runtime.Job;
@@ -25,6 +26,10 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.activiti.engine.test.Deployment;
+import org.hamcrest.Matcher;
+import org.mockito.internal.matchers.GreaterOrEqual;
+
+import static org.junit.Assert.assertThat;
 
 
 /**
@@ -71,8 +76,9 @@ public class SubProcessTest extends PluggableActivitiTestCase {
                                                    .singleResult();
     assertEquals("Task in subprocess", subProcessTask.getName());
     
-    // Setting the clock forward 2 hours 1 second (timer fires in 2 hours) and fire up the job executor 
-    processEngineConfiguration.getClock().setCurrentTime(new Date(startTime.getTime() + (2 * 60 * 60 * 1000) + 1000));
+    // Setting the clock forward 2 hours 1 second (timer fires in 2 hours) and fire up the job executor
+    Date escalationTime = new Date(startTime.getTime() + (2 * 60 * 60 * 1000) + 1000);
+    processEngineConfiguration.getClock().setCurrentTime(escalationTime);
     waitForJobExecutorToProcessAllJobs(5000L, 50L);
 
     // The subprocess should be left, and the escalated task should be active
@@ -80,6 +86,20 @@ public class SubProcessTest extends PluggableActivitiTestCase {
                                                    .processInstanceId(pi.getId())
                                                    .singleResult();
     assertEquals("Fix escalated problem", escalationTask.getName());
+
+    // test history
+    HistoricTaskInstance historicSubProcessTask = historyService.createHistoricTaskInstanceQuery().
+            taskDefinitionKey("subProcessTask").
+            singleResult();
+    assertTrue(historicSubProcessTask.getStartTime().before(new Date(startTime.getTime() + 1000)));
+    assertTrue(historicSubProcessTask.getEndTime().equals(escalationTime));
+
+    HistoricTaskInstance historicEscalationProcessTask = historyService.createHistoricTaskInstanceQuery().
+      taskDefinitionKey("subProcessTask").
+      singleResult();
+    assertTrue(historicEscalationProcessTask.getStartTime().equals(escalationTime));
+    assertNull(historicSubProcessTask.getEndTime());
+
   }
   
   /**
