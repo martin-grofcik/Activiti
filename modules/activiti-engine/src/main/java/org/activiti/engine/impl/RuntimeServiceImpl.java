@@ -27,12 +27,14 @@ import org.activiti.engine.form.FormData;
 import org.activiti.engine.impl.cmd.ActivateProcessInstanceCmd;
 import org.activiti.engine.impl.cmd.AddEventListenerCommand;
 import org.activiti.engine.impl.cmd.AddIdentityLinkForProcessInstanceCmd;
+import org.activiti.engine.impl.cmd.DeleteIdentityLinkForProcessInstanceCmd;
 import org.activiti.engine.impl.cmd.DeleteProcessInstanceCmd;
 import org.activiti.engine.impl.cmd.DispatchEventCommand;
 import org.activiti.engine.impl.cmd.FindActiveActivityIdsCmd;
 import org.activiti.engine.impl.cmd.GetExecutionVariableCmd;
 import org.activiti.engine.impl.cmd.GetExecutionVariablesCmd;
 import org.activiti.engine.impl.cmd.GetIdentityLinksForProcessInstanceCmd;
+import org.activiti.engine.impl.cmd.GetProcessInstanceEventsCmd;
 import org.activiti.engine.impl.cmd.GetStartFormCmd;
 import org.activiti.engine.impl.cmd.HasExecutionVariableCmd;
 import org.activiti.engine.impl.cmd.MessageEventReceivedCmd;
@@ -40,6 +42,7 @@ import org.activiti.engine.impl.cmd.RemoveEventListenerCommand;
 import org.activiti.engine.impl.cmd.RemoveExecutionVariablesCmd;
 import org.activiti.engine.impl.cmd.SetExecutionVariablesCmd;
 import org.activiti.engine.impl.cmd.SetProcessInstanceBusinessKeyCmd;
+import org.activiti.engine.impl.cmd.SetProcessInstanceNameCmd;
 import org.activiti.engine.impl.cmd.SignalCmd;
 import org.activiti.engine.impl.cmd.SignalEventReceivedCmd;
 import org.activiti.engine.impl.cmd.StartProcessInstanceByMessageCmd;
@@ -50,14 +53,16 @@ import org.activiti.engine.runtime.NativeExecutionQuery;
 import org.activiti.engine.runtime.NativeProcessInstanceQuery;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
+import org.activiti.engine.task.Event;
 import org.activiti.engine.task.IdentityLink;
+import org.activiti.engine.task.IdentityLinkType;
 
 /**
  * @author Tom Baeyens
  * @author Daniel Meyer
  */
 public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
-
+  
   public ProcessInstance startProcessInstanceByKey(String processDefinitionKey) {
     return commandExecutor.execute(new StartProcessInstanceCmd<ProcessInstance>(processDefinitionKey, null, null, null));
   }
@@ -161,7 +166,7 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   }
   
   public void setVariable(String executionId, String variableName, Object value) {
-    if(variableName == null) {
+    if (variableName == null) {
       throw new ActivitiIllegalArgumentException("variableName is null");
     }
     Map<String, Object> variables = new HashMap<String, Object>();
@@ -170,7 +175,7 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   }
   
   public void setVariableLocal(String executionId, String variableName, Object value) {
-    if(variableName == null) {
+    if (variableName == null) {
       throw new ActivitiIllegalArgumentException("variableName is null");
     }
     Map<String, Object> variables = new HashMap<String, Object>();
@@ -215,7 +220,35 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   }
 
   public void addUserIdentityLink(String processInstanceId, String userId, String identityLinkType) {
-    commandExecutor.execute(new AddIdentityLinkForProcessInstanceCmd(processInstanceId, userId, identityLinkType));
+    commandExecutor.execute(new AddIdentityLinkForProcessInstanceCmd(processInstanceId, userId, null, identityLinkType));
+  }
+
+  public void addGroupIdentityLink(String processInstanceId, String groupId, String identityLinkType) {
+    commandExecutor.execute(new AddIdentityLinkForProcessInstanceCmd(processInstanceId, null, groupId, identityLinkType));
+  }
+
+  public void addParticipantUser(String processInstanceId, String userId) {
+    commandExecutor.execute(new AddIdentityLinkForProcessInstanceCmd(processInstanceId, userId, null, IdentityLinkType.PARTICIPANT));
+  }
+
+  public void addParticipantGroup(String processInstanceId, String groupId) {
+    commandExecutor.execute(new AddIdentityLinkForProcessInstanceCmd(processInstanceId, null, groupId, IdentityLinkType.PARTICIPANT));
+  }
+
+  public void deleteParticipantUser(String processInstanceId, String userId) {
+    commandExecutor.execute(new DeleteIdentityLinkForProcessInstanceCmd(processInstanceId, userId, null, IdentityLinkType.PARTICIPANT));
+  }
+
+  public void deleteParticipantGroup(String processInstanceId, String groupId) {
+    commandExecutor.execute(new DeleteIdentityLinkForProcessInstanceCmd(processInstanceId, null, groupId, IdentityLinkType.PARTICIPANT));
+  }
+
+  public void deleteUserIdentityLink(String processInstanceId, String userId, String identityLinkType) {
+    commandExecutor.execute(new DeleteIdentityLinkForProcessInstanceCmd(processInstanceId, userId, null, identityLinkType));
+  }
+
+  public void deleteGroupIdentityLink(String processInstanceId, String groupId, String identityLinkType) {
+    commandExecutor.execute(new DeleteIdentityLinkForProcessInstanceCmd(processInstanceId, null, groupId, identityLinkType));
   }
 
   public List<IdentityLink> getIdentityLinksForProcessInstance(String processInstanceId) {
@@ -243,11 +276,11 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   }
   
   public ProcessInstance startProcessInstanceByMessage(String messageName) {
-    return commandExecutor.execute(new StartProcessInstanceByMessageCmd(messageName,null, null, null));
+    return commandExecutor.execute(new StartProcessInstanceByMessageCmd(messageName, null, null, null));
   }
 
   public ProcessInstance startProcessInstanceByMessageAndTenantId(String messageName, String tenantId) {
-  	return commandExecutor.execute(new StartProcessInstanceByMessageCmd(messageName,null, null, tenantId));
+  	return commandExecutor.execute(new StartProcessInstanceByMessageCmd(messageName, null, null, tenantId));
   }
   
   public ProcessInstance startProcessInstanceByMessage(String messageName, String businessKey) {
@@ -344,4 +377,15 @@ public class RuntimeServiceImpl extends ServiceImpl implements RuntimeService {
   public void dispatchEvent(ActivitiEvent event) {
 		commandExecutor.execute(new DispatchEventCommand(event));
   }
+	
+  @Override
+  public void setProcessInstanceName(String processInstanceId, String name) {
+     commandExecutor.execute(new SetProcessInstanceNameCmd(processInstanceId, name));
+  }
+
+  @Override
+  public List<Event> getProcessInstanceEvents(String processInstanceId) {
+    return commandExecutor.execute(new GetProcessInstanceEventsCmd(processInstanceId));
+  }
+
 }
