@@ -909,7 +909,12 @@ public class DbSqlSession implements Session {
       connection = sqlSession.getConnection();
       DatabaseMetaData databaseMetaData = connection.getMetaData();
       ResultSet tables = null;
-      
+
+      String catalog = this.connectionMetadataDefaultCatalog;
+      if (dbSqlSessionFactory.getDatabaseCatalog() != null) {
+        catalog = dbSqlSessionFactory.getDatabaseCatalog();
+      }
+
       String schema = this.connectionMetadataDefaultSchema;
       if (dbSqlSessionFactory.getDatabaseSchema()!=null) {
         schema = dbSqlSessionFactory.getDatabaseSchema();
@@ -922,7 +927,7 @@ public class DbSqlSession implements Session {
       }
       
       try {
-        tables = databaseMetaData.getTables(this.connectionMetadataDefaultCatalog, schema, tableName, JDBC_METADATA_TABLE_TYPES);
+        tables = databaseMetaData.getTables(catalog, schema, tableName, JDBC_METADATA_TABLE_TYPES);
         return tables.next();
       } finally {
         try {
