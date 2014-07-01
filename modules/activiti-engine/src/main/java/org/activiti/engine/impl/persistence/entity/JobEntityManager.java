@@ -44,32 +44,31 @@ public class JobEntityManager extends AbstractManager {
   }
  
   public void schedule(TimerEntity timer) {
+    Date duedate = timer.getDuedate();
+    if (duedate==null) {
+      throw new ActivitiIllegalArgumentException("duedate is null");
+    }
+
     timer.insert();
-
-    updateJobExecutor(timer);
+    pokeJobExecutor(timer);
   }
-
-  /**
-   * In the case when timer has changed we have to update JobExecutor as well.
-   *
-   * @param timer - changed timer
-   */
-  public void updateJobExecutor(JobEntity timer) {
-    // Check if this timer fires before the next time the job executor will check for new timers to fire.
-    // This is highly unlikely because normally waitTimeInMillis is 5000 (5 seconds)
-    // and timers are usually set further in the future
+    
+  // Check if this timer fires before the next time the job executor will check for new timers to fire.
+  // This is highly unlikely because normally waitTimeInMillis is 5000 (5 seconds)
+  // and timers are usually set further in the future
+  public void pokeJobExecutor(JobEntity job) {
     JobExecutor jobExecutor = Context.getProcessEngineConfiguration().getJobExecutor();
     int waitTimeInMillis = jobExecutor.getWaitTimeInMillis();
-    if (timer.getDuedate().getTime() < (Context.getProcessEngineConfiguration().getClock().getCurrentTime().getTime()+waitTimeInMillis)) {
-      hintJobExecutor(timer);
+    if (job.getDuedate().getTime() < (Context.getProcessEngineConfiguration().getClock().getCurrentTime().getTime()+waitTimeInMillis)) {
+      hintJobExecutor(job);
     }
   }
-
-  protected static void hintJobExecutor(JobEntity job) {
+  
+  protected void hintJobExecutor(JobEntity job) {  
     JobExecutor jobExecutor = Context.getProcessEngineConfiguration().getJobExecutor();
     JobExecutorContext jobExecutorContext = Context.getJobExecutorContext();
-    TransactionListener transactionListener;
-    if(job.isExclusive() 
+    TransactionListener transactionListener = null;
+    if (job.isExclusive() 
             && jobExecutorContext != null 
             && jobExecutorContext.isExecutingExclusiveJob()) {
       // lock job & add to the queue of the current processor
@@ -82,8 +81,8 @@ public class JobEntityManager extends AbstractManager {
       transactionListener = new MessageAddedNotification(jobExecutor);
     }
     Context.getCommandContext()
-    .getTransactionContext()
-    .addTransactionListener(TransactionState.COMMITTED, transactionListener);
+      .getTransactionContext()
+      .addTransactionListener(TransactionState.COMMITTED, transactionListener);
   }
  
   public void cancelTimers(ExecutionEntity execution) {
