@@ -12,6 +12,7 @@ create table ACT_HI_PROCINST (
     SUPER_PROCESS_INSTANCE_ID_ varchar(64),
     DELETE_REASON_ varchar(4000),
     TENANT_ID_ varchar(255) default '',
+    NAME_ varchar(255),
     primary key (ID_)
 );
 
@@ -132,6 +133,22 @@ create table ACT_HI_IDENTITYLINK (
     TASK_ID_ varchar(64),
     PROC_INST_ID_ varchar(64),
     primary key (ID_)
+);
+
+create table ACT_HI_EVT_LOG (
+    LOG_NR_ bigint not null GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+    TYPE_ varchar(64),
+    PROC_DEF_ID_ varchar(64),
+    PROC_INST_ID_ varchar(64),
+    EXECUTION_ID_ varchar(64),
+    TASK_ID_ varchar(64),
+    TIME_STAMP_ timestamp not null,
+    USER_ID_ varchar(255),
+    DATA_ clob,
+    LOCK_OWNER_ varchar(255),
+    LOCK_TIME_ timestamp,
+    IS_PROCESSED_ integer default 0,
+    primary key (LOG_NR_)
 );
 
 create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);

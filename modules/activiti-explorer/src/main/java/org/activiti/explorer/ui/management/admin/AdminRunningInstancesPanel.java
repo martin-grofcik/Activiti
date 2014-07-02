@@ -37,6 +37,7 @@ import org.activiti.explorer.ui.custom.UserProfileLink;
 import org.activiti.explorer.ui.mainlayout.ExplorerLayout;
 import org.activiti.explorer.ui.process.ProcessDefinitionImageStreamResourceBuilder;
 import org.activiti.explorer.ui.variable.VariableRendererManager;
+import org.activiti.image.ProcessDiagramGenerator;
 
 import java.io.Serializable;
 import java.util.*;

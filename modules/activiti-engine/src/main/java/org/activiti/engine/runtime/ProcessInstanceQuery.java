@@ -207,6 +207,16 @@ public interface ProcessInstanceQuery extends Query<ProcessInstanceQuery, Proces
   ProcessInstanceQuery active();
   
   /**
+   * Only select process instances with the given name.
+   */
+  ProcessInstanceQuery processInstanceName(String name);
+  
+  /**
+   * Only select process instances with a name like the given value. 
+   */
+  ProcessInstanceQuery processInstanceNameLike(String nameLike);
+  
+  /**
    * Include process variables in the process query result
    */
   ProcessInstanceQuery includeProcessVariables();

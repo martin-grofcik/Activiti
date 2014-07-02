@@ -79,12 +79,14 @@ public class BlueprintBasicTest {
   @Configuration
   public Option[] createConfiguration() {
     Option[] coreBundles = options(
-        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-model").version("5.16.EDW.7"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-converter").version("5.16.EDW.7"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-process-validation").version("5.16.EDW.7"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-engine").version("5.16.EDW.7"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-model").version("5.16.EDW.8"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-converter").version("5.16.EDW.8"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-process-validation").version("5.16.EDW.8"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-engine").version("5.16.EDW.8"),
         mavenBundle().groupId("org.apache.commons").artifactId("commons-lang3").version("3.1"),
-        mavenBundle().groupId("org.codehaus.jackson").artifactId("jackson-core-asl").version("1.9.9"),
+        mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-core").version("2.2.3"),
+        mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-databind").version("2.2.3"),
+        mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-annotations").version("2.2.3"),
         mavenBundle().groupId("log4j").artifactId("log4j").version("1.2.17"),
         mavenBundle().groupId("joda-time").artifactId("joda-time").version("2.1"),
         mavenBundle().groupId("com.h2database").artifactId("h2").version("1.3.170"),

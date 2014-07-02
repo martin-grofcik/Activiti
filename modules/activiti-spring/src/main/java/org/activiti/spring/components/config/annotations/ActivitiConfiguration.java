@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.FormService;
 import org.activiti.engine.HistoryService;
+import org.activiti.engine.IdentityService;
 import org.activiti.engine.ManagementService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
@@ -110,10 +111,15 @@ public class ActivitiConfiguration {
 	public ManagementService managementService(ProcessEngine processEngine) {
 		return processEngine.getManagementService();
 	}
-	
+
 	@Bean
 	public FormService formService(ProcessEngine processEngine) {
 		return processEngine.getFormService();
+	}
+
+	@Bean
+	public IdentityService identityService(ProcessEngine processEngine) {
+	  return processEngine.getIdentityService();
 	}
 
 	/*
@@ -233,7 +239,8 @@ public class ActivitiConfiguration {
 				simpleDriverDataSource.setUsername("sa");
 				simpleDriverDataSource.setPassword("");
 				ds = simpleDriverDataSource;
-			} catch (ClassNotFoundException e) {
+			}
+            catch (ClassNotFoundException e) {
 				throw new ActivitiException("No dataSource bean was found. Tried to create default H2 in memory database, "
 						+ "but couldn't find the driver on the classpath");
 			}

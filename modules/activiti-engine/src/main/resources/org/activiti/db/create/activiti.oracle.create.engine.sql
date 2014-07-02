@@ -6,10 +6,10 @@ create table ACT_GE_PROPERTY (
 );
 
 insert into ACT_GE_PROPERTY
-values ('schema.version', '5.15.1', 1);
+values ('schema.version', '5.16-SNAPSHOT', 1);
 
 insert into ACT_GE_PROPERTY
-values ('schema.history', 'create(5.15.1)', 1);
+values ('schema.history', 'create(5.16-SNAPSHOT)', 1);
 
 insert into ACT_GE_PROPERTY
 values ('next.dbid', '1', 1);
@@ -66,6 +66,7 @@ create table ACT_RU_EXECUTION (
     SUSPENSION_STATE_ INTEGER,
     CACHED_ENT_STATE_ INTEGER,
     TENANT_ID_ NVARCHAR2(255) DEFAULT '',
+    NAME_ NVARCHAR2(255),
     primary key (ID_)
 );
 
@@ -126,6 +127,7 @@ create table ACT_RU_TASK (
     CATEGORY_ NVARCHAR2(255),
     SUSPENSION_STATE_ INTEGER,
     TENANT_ID_ NVARCHAR2(255) DEFAULT '',
+    FORM_KEY_ NVARCHAR2(255),
     primary key (ID_)
 );
 

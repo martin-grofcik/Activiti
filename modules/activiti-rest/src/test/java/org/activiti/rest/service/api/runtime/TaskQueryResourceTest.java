@@ -26,10 +26,11 @@ import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 import org.activiti.rest.service.BaseRestTestCase;
 import org.activiti.rest.service.api.RestUrls;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.restlet.data.Status;
 import org.restlet.resource.ResourceException;
+
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -156,7 +157,17 @@ public class TaskQueryResourceTest extends BaseRestTestCase {
       requestNode.removeAll();
       requestNode.put("candidateGroup", "sales");
       assertResultsPresentInDataResponse(url, requestNode, processTask.getId());
+
+      // Candidate group In filtering
+      requestNode.removeAll();
+      ArrayNode arrayNode =  requestNode.arrayNode();
       
+      arrayNode.add("sales");
+      arrayNode.add("someOtherGroup");
+      
+      requestNode.put("candidateGroupIn", arrayNode);
+      assertResultsPresentInDataResponse(url, requestNode, processTask.getId());
+
       // Involved user filtering
       requestNode.removeAll();
       requestNode.put("involvedUser", "misspiggy");

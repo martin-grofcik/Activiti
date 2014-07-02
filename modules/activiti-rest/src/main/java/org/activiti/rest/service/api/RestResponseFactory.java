@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.activiti.engine.ActivitiIllegalArgumentException;
+import org.activiti.engine.HistoryService;
+import org.activiti.engine.RuntimeService;
 import org.activiti.engine.form.FormData;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.StartFormData;
@@ -59,10 +61,10 @@ import org.activiti.rest.service.api.engine.variable.IntegerRestVariableConverte
 import org.activiti.rest.service.api.engine.variable.LongRestVariableConverter;
 import org.activiti.rest.service.api.engine.variable.QueryVariable;
 import org.activiti.rest.service.api.engine.variable.RestVariable;
+import org.activiti.rest.service.api.engine.variable.RestVariable.RestVariableScope;
 import org.activiti.rest.service.api.engine.variable.RestVariableConverter;
 import org.activiti.rest.service.api.engine.variable.ShortRestVariableConverter;
 import org.activiti.rest.service.api.engine.variable.StringRestVariableConverter;
-import org.activiti.rest.service.api.engine.variable.RestVariable.RestVariableScope;
 import org.activiti.rest.service.api.form.FormDataResponse;
 import org.activiti.rest.service.api.form.RestEnumFormProperty;
 import org.activiti.rest.service.api.form.RestFormProperty;
@@ -79,10 +81,10 @@ import org.activiti.rest.service.api.identity.UserResponse;
 import org.activiti.rest.service.api.management.JobResponse;
 import org.activiti.rest.service.api.management.TableResponse;
 import org.activiti.rest.service.api.repository.DeploymentResourceResponse;
+import org.activiti.rest.service.api.repository.DeploymentResourceResponse.DeploymentResourceType;
 import org.activiti.rest.service.api.repository.DeploymentResponse;
 import org.activiti.rest.service.api.repository.ModelResponse;
 import org.activiti.rest.service.api.repository.ProcessDefinitionResponse;
-import org.activiti.rest.service.api.repository.DeploymentResourceResponse.DeploymentResourceType;
 import org.activiti.rest.service.api.runtime.process.ExecutionResponse;
 import org.activiti.rest.service.api.runtime.process.ProcessInstanceResponse;
 import org.activiti.rest.service.api.runtime.task.TaskResponse;
@@ -93,7 +95,15 @@ import org.restlet.data.MediaType;
 /**
  * Default implementation of a {@link RestResponseFactory}.
  * 
+ * Added a new "createProcessInstanceResponse" method (with a different signature) to conditionally
+ *   return the process variables that exist within the process instance when the first wait state 
+ *   is encountered (or when the process instance completes). Also added the population of a
+ *   "completed" flag - within both the original "createProcessInstanceResponse" method and
+ *   the new one with the different signature - to let the caller know whether the process
+ *   instance has completed or not.
+ * 
  * @author Frederik Heremans
+ * @author Ryan Johnston (@rjfsu)
  */
 public class RestResponseFactory {
 
@@ -430,9 +440,21 @@ public class RestResponseFactory {
     result.setId(processInstance.getId());
     result.setProcessDefinitionId(processInstance.getProcessDefinitionId());
     result.setProcessDefinitionUrl(securedResource.createFullResourceUrl(RestUrls.URL_PROCESS_DEFINITION, processInstance.getProcessDefinitionId()));
+    result.setEnded(processInstance.isEnded());
     result.setSuspended(processInstance.isSuspended());
     result.setUrl(securedResource.createFullResourceUrl(RestUrls.URL_PROCESS_INSTANCE, processInstance.getId()));
     result.setTenantId(processInstance.getTenantId());
+    
+    //Added by Ryan Johnston
+    if (processInstance.isEnded()) {
+      //Process complete. Note the same in the result.
+      result.setCompleted(true);
+    } else {
+    	//Process not complete. Note the same in the result.
+    	result.setCompleted(false);
+    }
+    //End Added by Ryan Johnston
+    
     if (processInstance.getProcessVariables() != null) {
       Map<String, Object> variableMap = processInstance.getProcessVariables();
       for (String name : variableMap.keySet()) {
@@ -440,8 +462,59 @@ public class RestResponseFactory {
             RestVariableScope.LOCAL, processInstance.getId(), VARIABLE_PROCESS, false));
       }
     }
+    
     return result;
   }
+  
+  public ProcessInstanceResponse createProcessInstanceResponse(SecuredResource securedResource, ProcessInstance processInstance, boolean returnVariables) {
+	    ProcessInstanceResponse result = new ProcessInstanceResponse();
+	    result.setActivityId(processInstance.getActivityId());
+	    result.setBusinessKey(processInstance.getBusinessKey());
+	    result.setId(processInstance.getId());
+	    result.setProcessDefinitionId(processInstance.getProcessDefinitionId());
+	    result.setProcessDefinitionUrl(securedResource.createFullResourceUrl(RestUrls.URL_PROCESS_DEFINITION, processInstance.getProcessDefinitionId()));
+	    result.setEnded(processInstance.isEnded());
+	    result.setSuspended(processInstance.isSuspended());
+	    result.setUrl(securedResource.createFullResourceUrl(RestUrls.URL_PROCESS_INSTANCE, processInstance.getId()));
+	    result.setTenantId(processInstance.getTenantId());
+	    
+	    //Added by Ryan Johnston
+	    if (processInstance.isEnded()) {
+	      //Process complete. Note the same in the result.
+	      result.setCompleted(true);
+	    } else {
+	    	//Process not complete. Note the same in the result.
+	    	result.setCompleted(false);
+	    }
+	    
+	    if (returnVariables) {
+	    	
+	    	if (processInstance.isEnded()) {
+	    		// Process complete. Get variable values from the history service.
+	    	  HistoryService historyService = ActivitiUtil.getHistoryService();
+	    		List<HistoricVariableInstance> historicVariableList = historyService.createHistoricVariableInstanceQuery()
+	    		    .processInstanceId(processInstance.getId())
+	    		    .list();
+	    		
+	    		for (HistoricVariableInstance historicVariable : historicVariableList) {
+	    		  result.addVariable(createRestVariable(securedResource, historicVariable.getVariableName(), historicVariable.getValue(), 
+	    		      RestVariableScope.LOCAL, processInstance.getId(), VARIABLE_PROCESS, false));
+	    		}	
+	    	}
+	    	else {
+	    		//Process not complete. Get runtime variables.
+	    	  RuntimeService runtimeService = ActivitiUtil.getRuntimeService();
+	    		Map<String, Object> variableMap = runtimeService.getVariables(processInstance.getId());
+	    		for (String name : variableMap.keySet()) {
+	    			result.addVariable(createRestVariable(securedResource, name, variableMap.get(name), 
+	    			    RestVariableScope.LOCAL, processInstance.getId(), VARIABLE_PROCESS, false));
+	        }
+	    	}
+	    }
+	    //End Added by Ryan Johnston
+	    
+	    return result;
+	  }
   
   
   public ExecutionResponse createExecutionResponse(SecuredResource securedResource, Execution execution) {

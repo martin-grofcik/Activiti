@@ -24,6 +24,7 @@ import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.jobexecutor.JobExecutor;
 import org.activiti.engine.runtime.Clock;
+import org.activiti.image.ProcessDiagramGenerator;
 
 
 /** Configuration information from which a process engine can be build.
@@ -97,7 +98,7 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
   public static final String NO_TENANT_ID = "";
 
   protected String processEngineName = ProcessEngines.NAME_DEFAULT;
-  protected int idBlockSize = 100;
+  protected int idBlockSize = 2500;
   protected String history = HistoryLevel.AUDIT.getKey();
   protected boolean jobExecutorActivate;
 

@@ -101,7 +101,7 @@ public class DbSqlSession implements Session {
 	  ACTIVITI_VERSIONS.add(new ActivitiVersion("5.13"));
 	  ACTIVITI_VERSIONS.add(new ActivitiVersion("5.14"));
 	  ACTIVITI_VERSIONS.add(new ActivitiVersion("5.15"));
-	  
+	  ACTIVITI_VERSIONS.add(new ActivitiVersion("5.15.1"));
 	  
 	  /* Current */
 	  
@@ -557,7 +557,8 @@ public class DbSqlSession implements Session {
         PersistentObject persistentObject = cachedObject.getPersistentObject();
         if (!isPersistentObjectDeleted(persistentObject)) {
           Object originalState = cachedObject.getPersistentObjectState();
-          if (!persistentObject.getPersistentState().equals(originalState)) {
+          if (persistentObject.getPersistentState() != null && 
+          		!persistentObject.getPersistentState().equals(originalState)) {
             updatedObjects.add(persistentObject);
           } else {
             log.trace("loaded object '{}' was not updated", persistentObject);

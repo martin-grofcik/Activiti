@@ -110,6 +110,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   
   /** The tenant identifier (if any) */
   protected String tenantId = ProcessEngineConfiguration.NO_TENANT_ID;
+  protected String name;
   
   // state/type of execution ////////////////////////////////////////////////// 
   
@@ -391,6 +392,20 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   }
   
   public void take(PvmTransition transition) {
+  	take(transition, true);
+  }
+  
+  /**
+   * @param fireActivityCompletionEvent This method can be called from other places
+   * (like {@link #takeAll(List, List)}), where the event is already fired.
+   * In that case, false is passed an no second event is fired.
+   */
+  public void take(PvmTransition transition, boolean fireActivityCompletionEvent) {
+ 
+  	if (fireActivityCompletionEvent) {
+	  	fireActivityCompletedEvent();
+  	}
+  	
     if (this.transition!=null) {
       throw new PvmException("already taking a transition");
     }
@@ -446,6 +461,9 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   
   @SuppressWarnings({ "unchecked", "rawtypes" })
   public void takeAll(List<PvmTransition> transitions, List<ActivityExecution> recyclableExecutions) {
+
+  	fireActivityCompletedEvent();
+  	
     transitions = new ArrayList<PvmTransition>(transitions);
     recyclableExecutions = (recyclableExecutions!=null ? new ArrayList<ActivityExecution>(recyclableExecutions) : new ArrayList<ActivityExecution>());
     
@@ -493,7 +511,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
       concurrentRoot.setActive(true);
       concurrentRoot.setActivity(activity);
       concurrentRoot.setConcurrent(false);
-      concurrentRoot.take(transitions.get(0));
+      concurrentRoot.take(transitions.get(0), false);
 
     } else {
       
@@ -532,8 +550,22 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
 
       // then launch all the concurrent executions
       for (OutgoingExecution outgoingExecution: outgoingExecutions) {
-        outgoingExecution.take();
+        outgoingExecution.take(false);
       }
+    }
+  }
+
+	protected void fireActivityCompletedEvent() {
+	  if(Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+    	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
+    			ActivitiEventBuilder.createActivityEvent(ActivitiEventType.ACTIVITY_COMPLETED, 
+    					getActivity() != null ? getActivity().getId() : getActivityId(), 
+    					getActivity() != null ? (String) getActivity().getProperties().get("name") : null,
+    					getId(),
+    					getProcessInstanceId(), 
+    					getProcessDefinitionId(), 
+    					getActivity() != null ? (String) getActivity().getProperties().get("type") : null,
+    					getActivity() != null ? getActivity().getActivityBehavior().getClass().getCanonicalName() : null));
     }
   }
   
@@ -555,7 +587,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   }
   
   public void performOperation(AtomicOperation executionOperation) {
-    if(executionOperation.isAsync(this)) {
+    if (executionOperation.isAsync(this)) {
       scheduleAtomicOperationAsync(executionOperation);
     } else {
       performOperationSync(executionOperation);
@@ -876,6 +908,11 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     
     // remove identity links
     removeIdentityLinks();
+    
+    if(Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+    	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
+    			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_DELETED, this));
+    }
 
     // finally delete this execution
     Context.getCommandContext()
@@ -1104,6 +1141,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     persistentState.put("isScope", this.isScope);
     persistentState.put("isEventScope", this.isEventScope);
     persistentState.put("parentId", parentId);
+    persistentState.put("name", name);
     persistentState.put("superExecution", this.superExecutionId);
     if (forcedUpdate) {
       persistentState.put("forcedUpdate", Boolean.TRUE);
@@ -1276,11 +1314,12 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     return identityLinks;
   }
 
-  public IdentityLinkEntity addIdentityLink(String userId, String type) {
+  public IdentityLinkEntity addIdentityLink(String userId, String groupId, String type) {
     IdentityLinkEntity identityLinkEntity = new IdentityLinkEntity();
     getIdentityLinks().add(identityLinkEntity);
     identityLinkEntity.setProcessInstance(this);
     identityLinkEntity.setUserId(userId);
+    identityLinkEntity.setGroupId(groupId);
     identityLinkEntity.setType(type);
     identityLinkEntity.insert();
     return identityLinkEntity;
@@ -1296,7 +1335,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
         return identityLink;
       }
     }
-    return addIdentityLink(userId, type);
+    return addIdentityLink(userId, null, type);
   }
   
   public void removeIdentityLinks() {
@@ -1458,6 +1497,15 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   public String getCurrentActivityName() {
     return activityName;
   }
+
+  @Override
+  public String getName() {
+    return this.name;
+  }
+  
+  public void setName(String name) {
+    this.name = name;
+  }
   
   public String getTenantId() {
 		return tenantId;
@@ -1480,7 +1528,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
   }
   
   public List<VariableInstanceEntity> getQueryVariables() {
-    if(queryVariables == null && Context.getCommandContext() != null) {
+    if (queryVariables == null && Context.getCommandContext() != null) {
       queryVariables = new VariableInitializingList();
     }
     return queryVariables;
@@ -1495,7 +1543,7 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
       setBusinessKey(bzKey);
       Context.getCommandContext().getHistoryManager().updateProcessBusinessKeyInHistory(this);
       
-      if(Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+      if (Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
       	Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
       			ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_UPDATED, this));
       }
@@ -1504,4 +1552,17 @@ public class ExecutionEntity extends VariableScopeImpl implements ActivityExecut
     }
     return null;
   }
+  
+  public void deleteIdentityLink(String userId, String groupId, String type) {
+    List<IdentityLinkEntity> identityLinks = Context.getCommandContext().getIdentityLinkEntityManager()
+            .findIdentityLinkByProcessInstanceUserGroupAndType(id, userId, groupId, type);
+
+    for (IdentityLinkEntity identityLink : identityLinks) {
+      Context.getCommandContext().getIdentityLinkEntityManager().deleteIdentityLink(identityLink, true);
+    }
+
+    getIdentityLinks().removeAll(identityLinks);
+
+  }
+  
 }
