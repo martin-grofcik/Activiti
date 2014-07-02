@@ -61,7 +61,6 @@ import org.activiti.engine.impl.ServiceImpl;
 import org.activiti.engine.impl.TaskServiceImpl;
 import org.activiti.engine.impl.bpmn.data.ItemInstance;
 import org.activiti.engine.impl.bpmn.deployer.BpmnDeployer;
-import org.activiti.engine.impl.bpmn.diagram.DefaultProcessDiagramGenerator;
 import org.activiti.engine.impl.bpmn.parser.BpmnParseHandlers;
 import org.activiti.engine.impl.bpmn.parser.BpmnParser;
 import org.activiti.engine.impl.bpmn.parser.factory.ActivityBehaviorFactory;
