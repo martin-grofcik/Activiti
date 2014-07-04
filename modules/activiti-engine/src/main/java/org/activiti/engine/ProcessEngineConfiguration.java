@@ -160,7 +160,7 @@ public abstract class ProcessEngineConfiguration implements EngineServices {
   /**
    * database catalog to use
    */
-  protected String databaseCatalog = "";
+  protected String databaseCatalog = null;
 
   /**
    * In some situations you want to set the schema to use for table checks / generation if the database metadata
