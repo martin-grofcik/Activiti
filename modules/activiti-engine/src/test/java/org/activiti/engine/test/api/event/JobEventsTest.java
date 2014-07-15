@@ -20,11 +20,11 @@ import org.activiti.engine.impl.util.DefaultClockImpl;
 import org.activiti.engine.runtime.Clock;
 import org.activiti.engine.runtime.Job;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 
 import java.util.Calendar;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -148,6 +148,70 @@ public class JobEventsTest extends PluggableActivitiTestCase {
     assertEquals(2, timerFiredCount);
   }
 
+  @Deployment
+  public void testJobCanceledEventOnBoundaryEvent() throws Exception {
+    Clock previousClock = processEngineConfiguration.getClock();
+
+    Clock testClock = new DefaultClockImpl();
+
+    processEngineConfiguration.setClock(testClock);
+
+    testClock.setCurrentTime(new Date(0));
+    runtimeService.startProcessInstanceByKey("testTimerCancelledEvent");
+    listener.clearEventsReceived();
+
+    Task task = taskService.createTaskQuery().singleResult();
+
+    taskService.complete(task.getId());
+
+    checkEventCount(1, ActivitiEventType.JOB_CANCELED);
+  }
+
+  @Deployment(resources = "org/activiti/engine/test/api/event/JobEventsTest.testJobCanceledEventOnBoundaryEvent.bpmn20.xml")
+  public void testJobCanceledEventByManagementService() throws Exception {
+    // GIVEN
+    processEngineConfiguration.getClock().setCurrentTime(new Date(0));
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testTimerCancelledEvent");
+    listener.clearEventsReceived();
+
+    Job job = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
+
+    // WHEN
+    managementService.deleteJob(job.getId());
+
+    // THEN
+    checkEventCount(1, ActivitiEventType.JOB_CANCELED);
+  }
+
+  public void testJobCanceledEventOnProcessRedeploy() throws Exception {
+    // GIVEN
+    // deploy process definition
+    String deployment1 = repositoryService.createDeployment().addClasspathResource("org/activiti/engine/test/api/event/JobEventsTest.testTimerFiredForTimerStart.bpmn20.xml").deploy().getId();
+    listener.clearEventsReceived();
+
+    // WHEN
+    String deployment2 = repositoryService.createDeployment().addClasspathResource("org/activiti/engine/test/api/event/JobEventsTest.testTimerFiredForTimerStart.bpmn20.xml").deploy().getId();
+
+    // THEN
+    checkEventCount(1, ActivitiEventType.JOB_CANCELED);
+
+    repositoryService.deleteDeployment(deployment2);
+    repositoryService.deleteDeployment(deployment1);
+  }
+
+  private void checkEventCount(int expectedCount, ActivitiEventType eventType) {// count timer cancelled events
+    int timerCancelledCount = 0;
+    List<ActivitiEvent> eventsReceived = listener.getEventsReceived();
+    for (ActivitiEvent eventReceived : eventsReceived) {
+      if (eventType.equals(eventReceived.getType())) {
+        timerCancelledCount++;
+      }
+    }
+    listener.clearEventsReceived();
+
+    assertEquals(eventType.name() + " event was expected.", expectedCount, timerCancelledCount);
+  }
+
   /**
 
     /**
@@ -210,7 +274,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
 		Calendar tomorrow = Calendar.getInstance();
 		tomorrow.add(Calendar.DAY_OF_YEAR, 1);
 		processEngineConfiguration.getClock().setCurrentTime(tomorrow.getTime());
-		waitForJobExecutorToProcessAllJobs(2000, 100);
+		waitForJobExecutorToProcessAllJobs(200000, 100);
 		
 		// Check delete-event has been dispatched
 		assertEquals(5, listener.getEventsReceived().size());

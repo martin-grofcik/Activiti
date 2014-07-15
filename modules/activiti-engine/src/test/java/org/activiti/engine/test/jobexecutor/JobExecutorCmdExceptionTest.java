@@ -3,7 +3,7 @@
  */
 package org.activiti.engine.test.jobexecutor;
 
-import org.activiti.engine.impl.cmd.DeleteJobsCmd;
+import org.activiti.engine.impl.cmd.CancelJobsCmd;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
@@ -57,7 +57,7 @@ public class JobExecutorCmdExceptionTest extends PluggableActivitiTestCase {
 
     // TODO check if there is a failed job in the DLQ
 
-    commandExecutor.execute(new DeleteJobsCmd(jobId));
+    commandExecutor.execute(new CancelJobsCmd(jobId));
   }
 
   protected MessageEntity createTweetExceptionMessage() {
