@@ -23,6 +23,7 @@ import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.JobEntity;
 import org.activiti.engine.impl.pvm.PvmTransition;
 import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
+import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.impl.pvm.runtime.InterpretableExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,10 @@ public class BpmnActivityBehavior implements Serializable {
    * parallel paths of executions are created.
    */
   public void performDefaultOutgoingBehavior(ActivityExecution activityExecution) {
-    dispatchJobCanceledEvents(activityExecution);
+    ActivityImpl activity = (ActivityImpl) activityExecution.getActivity();
+    if (!(activity.getActivityBehavior() instanceof IntermediateCatchEventActivityBehavior)) {
+      dispatchJobCanceledEvents(activityExecution);
+    }
     performOutgoingBehavior(activityExecution, true, false, null);
   }
 

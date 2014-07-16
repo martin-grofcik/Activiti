@@ -207,9 +207,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
         timerCancelledCount++;
       }
     }
-    listener.clearEventsReceived();
-
-    assertEquals(eventType.name() + " event was expected.", expectedCount, timerCancelledCount);
+    assertEquals(eventType.name() + " event was expected "+ expectedCount+" times.", expectedCount, timerCancelledCount);
   }
 
   /**
@@ -230,6 +228,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
         // Check Timer fired event has been dispatched
         assertEquals(3, listener.getEventsReceived().size());
         assertEquals(ActivitiEventType.TIMER_FIRED, listener.getEventsReceived().get(0).getType());
+        checkEventCount(0, ActivitiEventType.JOB_CANCELED);
     }
 
     /**
@@ -245,15 +244,8 @@ public class JobEventsTest extends PluggableActivitiTestCase {
         processEngineConfiguration.getClock().setCurrentTime(tomorrow.getTime());
         waitForJobExecutorToProcessAllJobs(2000, 100);
 
-        // Check Timer fired event has been dispatched
-        // there is an issue (ENTITY_DELETED for job is generated twice)
-        boolean timerFired = false;
-        for(ActivitiEvent event : listener.getEventsReceived()) {
-          if (ActivitiEventType.TIMER_FIRED.equals(event.getType())) {
-            timerFired = true;
-          }
-        }
-        assertTrue(timerFired);
+        checkEventCount(0, ActivitiEventType.JOB_CANCELED);
+        checkEventCount(1, ActivitiEventType.TIMER_FIRED);
     }
 
     /**
