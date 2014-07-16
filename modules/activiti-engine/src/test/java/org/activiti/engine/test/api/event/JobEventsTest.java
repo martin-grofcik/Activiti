@@ -200,14 +200,14 @@ public class JobEventsTest extends PluggableActivitiTestCase {
   }
 
   private void checkEventCount(int expectedCount, ActivitiEventType eventType) {// count timer cancelled events
-    int timerCancelledCount = 0;
+    int actualCount = 0;
     List<ActivitiEvent> eventsReceived = listener.getEventsReceived();
     for (ActivitiEvent eventReceived : eventsReceived) {
       if (eventType.equals(eventReceived.getType())) {
-        timerCancelledCount++;
+        actualCount++;
       }
     }
-    assertEquals(eventType.name() + " event was expected "+ expectedCount+" times.", expectedCount, timerCancelledCount);
+    assertEquals(eventType.name() + " event was expected "+ expectedCount+" times.", expectedCount, actualCount);
   }
 
   /**
