@@ -177,6 +177,12 @@ public enum ActivitiEventType {
 	TASK_COMPLETED,
 
   /**
+   * A task was time outed. After the timer fired event user task is timeout is fired in the case when timer is
+   * associated with task.
+   */
+  TASK_TIMEOUT,
+
+  /**
    * A process has been completed. Dispatched after the last activity is ACTIVITY_COMPLETED. Process is completed
    * when it reaches state in which process instance does not have any transition to take.
    */

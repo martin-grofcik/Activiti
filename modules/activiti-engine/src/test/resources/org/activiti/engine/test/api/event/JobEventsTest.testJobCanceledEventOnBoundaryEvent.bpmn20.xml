@@ -11,7 +11,7 @@
       
     <userTask id="task" />
     
-    <boundaryEvent attachedToRef="task" id="timer" cancelActivity="false">
+    <boundaryEvent attachedToRef="task" id="timer" cancelActivity="true">
     	<timerEventDefinition>
         <timeDuration>PT10H</timeDuration>
     	</timerEventDefinition>
