@@ -6,12 +6,12 @@
   <name>Activiti - Simple Workflow Alfresco Conversion</name>
   <artifactId>activiti-simple-workflow-alfresco</artifactId>
 
-	<parent>
-		<groupId>org.activiti</groupId>
-		<artifactId>activiti-root</artifactId>
-		<relativePath>../..</relativePath>
-		<version>5.16.EDW.24</version>
-	</parent>
+  <parent>
+    <groupId>org.activiti</groupId>
+    <artifactId>activiti-root</artifactId>
+    <relativePath>../..</relativePath>
+    <version>5.16.3</version>
+  </parent>
 
   <dependencies>
     <!-- BPMN model conversion -->

@@ -30,7 +30,7 @@ public class BPMNDIExport implements BpmnXMLConstants {
     xtw.writeStartElement(BPMNDI_PREFIX, ELEMENT_DI_DIAGRAM, BPMNDI_NAMESPACE);
     
     String processId = null;
-    if(model.getPools().size() > 0) {
+    if(!model.getPools().isEmpty()) {
       processId = "Collaboration";
     } else {
       processId = model.getMainProcess().getId();
@@ -53,7 +53,7 @@ public class BPMNDIExport implements BpmnXMLConstants {
         
         GraphicInfo graphicInfo = model.getGraphicInfo(elementId);
         FlowElement flowElement = model.getFlowElement(elementId);
-        if (flowElement != null && flowElement instanceof SubProcess && graphicInfo.getExpanded() != null) {
+        if (flowElement instanceof SubProcess && graphicInfo.getExpanded() != null) {
           xtw.writeAttribute(ATTRIBUTE_DI_IS_EXPANDED, String.valueOf(graphicInfo.getExpanded()));
         }
         

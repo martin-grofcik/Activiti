@@ -12,7 +12,10 @@
  */
 package org.activiti.engine.test.api.event;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.List;
 
 import org.activiti.engine.delegate.event.ActivitiActivityEvent;
 import org.activiti.engine.delegate.event.ActivitiErrorEvent;
@@ -20,8 +23,12 @@ import org.activiti.engine.delegate.event.ActivitiEvent;
 import org.activiti.engine.delegate.event.ActivitiEventType;
 import org.activiti.engine.delegate.event.ActivitiMessageEvent;
 import org.activiti.engine.delegate.event.ActivitiSignalEvent;
+import org.activiti.engine.delegate.event.impl.ActivitiActivityEventImpl;
+import org.activiti.engine.event.EventLogEntry;
+import org.activiti.engine.impl.event.logger.EventLogger;
 import org.activiti.engine.impl.test.PluggableActivitiTestCase;
 import org.activiti.engine.runtime.Execution;
+import org.activiti.engine.runtime.Job;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
@@ -30,10 +37,49 @@ import org.activiti.engine.test.Deployment;
  * Test case for all {@link ActivitiEvent}s related to activities.
  * 
  * @author Frederik Heremans
+ * @author Joram Barrez
  */
 public class ActivityEventsTest extends PluggableActivitiTestCase {
 
 	private TestActivitiActivityEventListener listener;
+	
+	protected EventLogger databaseEventLogger;
+	
+	@Override
+	protected void setUp() throws Exception {
+	  super.setUp();
+	  
+	  // Database event logger setup
+	  databaseEventLogger = new EventLogger(processEngineConfiguration.getClock());
+	  runtimeService.addEventListener(databaseEventLogger);
+	}
+	
+	@Override
+	protected void tearDown() throws Exception {
+		
+		if (listener != null) {
+			listener.clearEventsReceived();
+			processEngineConfiguration.getEventDispatcher().removeEventListener(listener);
+		}
+		
+		// Remove entries
+		for (EventLogEntry eventLogEntry : managementService.getEventLogEntries(null, null)) {
+			managementService.deleteEventLogEntry(eventLogEntry.getLogNumber());
+		}
+		
+		// Database event logger teardown
+		runtimeService.removeEventListener(databaseEventLogger);
+		
+	  super.tearDown();
+	}
+	
+	@Override
+	protected void initializeServices() {
+		super.initializeServices();
+
+		listener = new TestActivitiActivityEventListener(true);
+		processEngineConfiguration.getEventDispatcher().addEventListener(listener);
+	}
 
 	/**
 	 * Test starting and completed events for activity. Since these events are dispatched in the core
@@ -76,7 +122,8 @@ public class ActivityEventsTest extends PluggableActivitiTestCase {
 		
 		// Complete usertask
 		listener.clearEventsReceived();
-		Task task = taskService.createTaskQuery().processInstanceId(processInstance.getId())
+		Task task = taskService.createTaskQuery()
+		    .processInstanceId(processInstance.getId())
 				.singleResult();
 		assertNotNull(task);
 		taskService.complete(task.getId());
@@ -212,6 +259,8 @@ public class ActivityEventsTest extends PluggableActivitiTestCase {
 		assertEquals("alert", signalEvent.getSignalName());
 		assertNotNull(signalEvent.getSignalData());
 		listener.clearEventsReceived();
+		
+		assertDatabaseEventPresent(ActivitiEventType.ACTIVITY_SIGNALED);
 	}
 
 	/**
@@ -277,6 +326,8 @@ public class ActivityEventsTest extends PluggableActivitiTestCase {
 		assertEquals(processInstance.getProcessDefinitionId(), signalEvent.getProcessDefinitionId());
 		assertEquals("messageName", signalEvent.getSignalName());
 		assertNull(signalEvent.getSignalData());
+		
+		assertDatabaseEventPresent(ActivitiEventType.ACTIVITY_MESSAGE_RECEIVED);
 	}
 
 	/**
@@ -353,6 +404,8 @@ public class ActivityEventsTest extends PluggableActivitiTestCase {
 				.singleResult();
 		
 		assertNotNull(processInstance);
+		
+		assertDatabaseEventPresent(ActivitiEventType.ACTIVITY_COMPENSATE);
 	}
 	
 	/**
@@ -423,24 +476,86 @@ public class ActivityEventsTest extends PluggableActivitiTestCase {
 		assertEquals(processInstance.getProcessDefinitionId(), errorEvent.getProcessDefinitionId());
 		assertFalse(processInstance.getId().equals(errorEvent.getExecutionId()));
 	}
-	
-	
 
-	@Override
-	protected void initializeServices() {
-		super.initializeServices();
+  @Deployment(resources = "org/activiti/engine/test/api/event/JobEventsTest.testJobEntityEvents.bpmn20.xml")
+  public void testActivityTimeOutEvent(){
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testJobEvents");
+    Job theJob = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
+    assertNotNull(theJob);
 
-		listener = new TestActivitiActivityEventListener(true);
-		processEngineConfiguration.getEventDispatcher().addEventListener(listener);
-	}
+    // Force timer to fire
+    Calendar tomorrow = Calendar.getInstance();
+    tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+    processEngineConfiguration.getClock().setCurrentTime(tomorrow.getTime());
+    waitForJobExecutorToProcessAllJobs(2000, 100);
 
-	@Override
-	protected void tearDown() throws Exception {
-		super.tearDown();
+    // Check timeout has been dispatched
+    assertEquals(1, listener.getEventsReceived().size());
+    ActivitiEvent timeOutEvent = listener.getEventsReceived().get(0);
+    assertEquals("ACTIVITY_TIMEOUT evet expected", ActivitiEventType.ACTIVITY_TIMEOUT, timeOutEvent.getType());
+  }
 
-		if (listener != null) {
-			listener.clearEventsReceived();
-			processEngineConfiguration.getEventDispatcher().removeEventListener(listener);
+  @Deployment(resources = "org/activiti/engine/test/bpmn/event/timer/BoundaryTimerEventTest.testTimerOnNestingOfSubprocesses.bpmn20.xml")
+  public void testActivityTimeOutEventInSubProcess() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("timerOnNestedSubprocesses");
+    Job theJob = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
+    assertNotNull(theJob);
+
+    // Force timer to fire
+    Calendar timeToFire = Calendar.getInstance();
+    timeToFire.add(Calendar.HOUR, 2);
+    timeToFire.add(Calendar.SECOND, 5);
+    processEngineConfiguration.getClock().setCurrentTime(timeToFire.getTime());
+    waitForJobExecutorToProcessAllJobs(2000, 100);
+
+    // Check timeout-events have been dispatched
+    assertEquals(3, listener.getEventsReceived().size());
+    List<String> eventIdList = new ArrayList<String>();
+    for (ActivitiEvent event : listener.getEventsReceived()) {
+      assertEquals(ActivitiEventType.ACTIVITY_TIMEOUT, event.getType());
+      eventIdList.add(((ActivitiActivityEventImpl) event).getActivityId());
+    }
+    assertTrue(eventIdList.indexOf("innerTask1") >= 0);
+    assertTrue(eventIdList.indexOf("innerTask2") >= 0);
+    assertTrue(eventIdList.indexOf("innerFork") >= 0);
+  }
+
+  @Deployment
+  public void testActivityTimeOutEventInCallActivity() {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("timerOnCallActivity");
+    Job theJob = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
+    assertNotNull(theJob);
+
+    // Force timer to fire
+    Calendar timeToFire = Calendar.getInstance();
+    timeToFire.add(Calendar.HOUR, 2);
+    timeToFire.add(Calendar.SECOND, 5);
+    processEngineConfiguration.getClock().setCurrentTime(timeToFire.getTime());
+    waitForJobExecutorToProcessAllJobs(200000, 100);
+
+    // Check timeout-events have been dispatched
+    assertEquals(4, listener.getEventsReceived().size());
+    List<String> eventIdList = new ArrayList<String>();
+    for (ActivitiEvent event : listener.getEventsReceived()) {
+      assertEquals(ActivitiEventType.ACTIVITY_TIMEOUT, event.getType());
+      eventIdList.add(((ActivitiActivityEventImpl) event).getActivityId());
+    }
+    assertTrue(eventIdList.indexOf("innerTask1") >= 0);
+    assertTrue(eventIdList.indexOf("innerTask2") >= 0);
+    assertTrue(eventIdList.indexOf("innerFork") >= 0);
+    assertTrue(eventIdList.indexOf("callActivity") >= 0);
+  }
+
+  protected void assertDatabaseEventPresent(ActivitiEventType eventType) {
+		String eventTypeString = eventType.name();
+		List<EventLogEntry> eventLogEntries = managementService.getEventLogEntries(0L, 100000L);
+		boolean found = false;
+		for (EventLogEntry entry : eventLogEntries) {
+			if (entry.getType().equals(eventTypeString)) {
+				found = true;
+			}
 		}
+		assertTrue(found);
 	}
+	
 }

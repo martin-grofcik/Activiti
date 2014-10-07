@@ -38,7 +38,7 @@ public class SpringJobExecutorTest extends SpringActivitiTestCase {
 		waitForTasksToExpire();
 
 		List<Task> activeTasks = taskService.createTaskQuery().processInstanceId(instance.getId()).list();
-		assertTrue(activeTasks.size() == 0);
+		assertTrue(activeTasks.isEmpty());
 	}
 
 	@Test
@@ -53,7 +53,7 @@ public class SpringJobExecutorTest extends SpringActivitiTestCase {
 	}
 
 	private void waitForTasksToExpire() throws Exception {
-		Thread.sleep(2000L);
+		Thread.sleep(10000L);
 	}
 
 }

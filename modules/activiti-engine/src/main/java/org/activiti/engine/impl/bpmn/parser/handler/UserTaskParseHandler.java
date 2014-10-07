@@ -12,11 +12,15 @@
  */
 package org.activiti.engine.impl.bpmn.parser.handler;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.activiti.bpmn.constants.BpmnXMLConstants;
 import org.activiti.bpmn.model.ActivitiListener;
 import org.activiti.bpmn.model.BaseElement;
 import org.activiti.bpmn.model.ImplementationType;
 import org.activiti.bpmn.model.UserTask;
+import org.activiti.engine.delegate.Expression;
 import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.impl.bpmn.parser.BpmnParse;
 import org.activiti.engine.impl.el.ExpressionManager;
@@ -107,6 +111,24 @@ public class UserTaskParseHandler extends AbstractActivityBpmnParseHandler<UserT
     	taskDefinition.setFormKeyExpression(expressionManager.createExpression(userTask.getFormKey()));
     }
 
+    // CustomUserIdentityLinks
+    for (String customUserIdentityLinkType : userTask.getCustomUserIdentityLinks().keySet()) {
+    	Set<Expression> userIdentityLinkExpression = new HashSet<Expression>();
+    	for (String userIdentityLink : userTask.getCustomUserIdentityLinks().get(customUserIdentityLinkType)) {
+    		userIdentityLinkExpression.add(expressionManager.createExpression(userIdentityLink));
+    	}
+    	taskDefinition.addCustomUserIdentityLinkExpression(customUserIdentityLinkType, userIdentityLinkExpression);
+      }
+    
+    // CustomGroupIdentityLinks
+    for (String customGroupIdentityLinkType : userTask.getCustomGroupIdentityLinks().keySet()) {
+    	Set<Expression> groupIdentityLinkExpression = new HashSet<Expression>();
+    	for (String groupIdentityLink : userTask.getCustomGroupIdentityLinks().get(customGroupIdentityLinkType)) {
+    		groupIdentityLinkExpression.add(expressionManager.createExpression(groupIdentityLink));
+    	}
+    	taskDefinition.addCustomGroupIdentityLinkExpression(customGroupIdentityLinkType, groupIdentityLinkExpression);
+      }
+
     return taskDefinition;
   }
   
@@ -122,5 +144,4 @@ public class UserTaskParseHandler extends AbstractActivityBpmnParseHandler<UserT
     }
     return taskListener;
   }
-
 }

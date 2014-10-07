@@ -105,7 +105,8 @@ public class JobEventsTest extends PluggableActivitiTestCase {
 
     processEngineConfiguration.setClock(testClock);
 
-    testClock.setCurrentTime(new Date(0));
+    Date now = new Date();
+    testClock.setCurrentTime(now);
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testRepetitionJobEvents");
     Job theJob = managementService.createJobQuery().processInstanceId(processInstance.getId()).singleResult();
     assertNotNull(theJob);
@@ -123,15 +124,15 @@ public class JobEventsTest extends PluggableActivitiTestCase {
     listener.clearEventsReceived();
 
     // fire timer for the first time
-    testClock.setCurrentTime(new Date(10000));
+    testClock.setCurrentTime(new Date(now.getTime() + 10000L));
     waitForJobExecutorToProcessAllJobs(20000, 100);
 
     // fire timer for the second time
-    testClock.setCurrentTime(new Date(20000));
+    testClock.setCurrentTime(new Date(now.getTime() + 20000L));
     waitForJobExecutorToProcessAllJobs(20000, 100);
 
     // do not fire timer
-    testClock.setCurrentTime(new Date(30000));
+    testClock.setCurrentTime(new Date(now.getTime() + 30000L));
     waitForJobExecutorToProcessAllJobs(20000, 100);
 
     // count timer fired events
@@ -150,13 +151,11 @@ public class JobEventsTest extends PluggableActivitiTestCase {
 
   @Deployment
   public void testJobCanceledEventOnBoundaryEvent() throws Exception {
-    Clock previousClock = processEngineConfiguration.getClock();
-
     Clock testClock = new DefaultClockImpl();
 
     processEngineConfiguration.setClock(testClock);
 
-    testClock.setCurrentTime(new Date(0));
+    testClock.setCurrentTime(new Date());
     runtimeService.startProcessInstanceByKey("testTimerCancelledEvent");
     listener.clearEventsReceived();
 
@@ -170,7 +169,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
   @Deployment(resources = "org/activiti/engine/test/api/event/JobEventsTest.testJobCanceledEventOnBoundaryEvent.bpmn20.xml")
   public void testJobCanceledEventByManagementService() throws Exception {
     // GIVEN
-    processEngineConfiguration.getClock().setCurrentTime(new Date(0));
+    processEngineConfiguration.getClock().setCurrentTime(new Date());
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testTimerCancelledEvent");
     listener.clearEventsReceived();
 
@@ -200,14 +199,14 @@ public class JobEventsTest extends PluggableActivitiTestCase {
   }
 
   private void checkEventCount(int expectedCount, ActivitiEventType eventType) {// count timer cancelled events
-    int actualCount = 0;
+    int timerCancelledCount = 0;
     List<ActivitiEvent> eventsReceived = listener.getEventsReceived();
     for (ActivitiEvent eventReceived : eventsReceived) {
       if (eventType.equals(eventReceived.getType())) {
-        actualCount++;
+        timerCancelledCount++;
       }
     }
-    assertEquals(eventType.name() + " event was expected "+ expectedCount+" times.", expectedCount, actualCount);
+    assertEquals(eventType.name() + " event was expected "+ expectedCount+" times.", expectedCount, timerCancelledCount);
   }
 
   /**
@@ -236,7 +235,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
      */
     @Deployment
     public void testTimerFiredForIntermediateTimer() throws Exception {
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testTimerFiredForIntermediateTimer");
+        runtimeService.startProcessInstanceByKey("testTimerFiredForIntermediateTimer");
 
         // Force timer to start the process
         Calendar tomorrow = Calendar.getInstance();
@@ -266,7 +265,7 @@ public class JobEventsTest extends PluggableActivitiTestCase {
 		Calendar tomorrow = Calendar.getInstance();
 		tomorrow.add(Calendar.DAY_OF_YEAR, 1);
 		processEngineConfiguration.getClock().setCurrentTime(tomorrow.getTime());
-		waitForJobExecutorToProcessAllJobs(200000, 100);
+		waitForJobExecutorToProcessAllJobs(2000, 100);
 		
 		// Check delete-event has been dispatched
 		assertEquals(5, listener.getEventsReceived().size());

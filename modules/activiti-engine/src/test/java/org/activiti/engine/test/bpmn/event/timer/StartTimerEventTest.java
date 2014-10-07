@@ -106,7 +106,6 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     assertEquals(1, jobQuery.count());
     //have to manually delete pending timer
     cleanDB();
-
   }
 
   
@@ -121,23 +120,13 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     // After process start, there should be timer created
     JobQuery jobQuery = managementService.createJobQuery();
     assertEquals(1, jobQuery.count());
-
-    final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
     
-    moveByMinutes(5);
-    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
-      public Boolean call() throws Exception {
-        return 1 ==  piq.count();
-      }      
-    });
+    moveByMinutes(6);
+    managementService.executeJob(managementService.createJobQuery().singleResult().getId());
     assertEquals(1, jobQuery.count());
 
-    moveByMinutes(5);
-    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
-      public Boolean call() throws Exception {
-        return 2 ==  piq.count();
-      }      
-    });
+    moveByMinutes(6);
+    managementService.executeJob(managementService.createJobQuery().singleResult().getId());
     assertEquals(0, jobQuery.count());
 
   }
@@ -203,7 +192,7 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     assertEquals(1, jobQuery.count());
     
     // Reset deployment cache
-    ((ProcessEngineConfigurationImpl) processEngineConfiguration).getProcessDefinitionCache().clear();
+    processEngineConfiguration.getProcessDefinitionCache().clear();
     
     // Start one instance of the process definition, this will trigger a cache reload
     runtimeService.startProcessInstanceByKey("startTimer");

@@ -37,7 +37,6 @@ import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.osgi.blueprint.bean.SimpleBean;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -57,7 +56,7 @@ import org.osgi.framework.Constants;
  * 
  * @author Tijs Rademakers
  */
-@Ignore
+
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerMethod.class)
 public class BlueprintBasicTest {
@@ -80,11 +79,12 @@ public class BlueprintBasicTest {
   @Configuration
   public Option[] createConfiguration() {
     Option[] coreBundles = options(
-        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-model").version("5.16.EDW.24"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-converter").version("5.16.EDW.24"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-process-validation").version("5.16.EDW.24"),
-        mavenBundle().groupId("org.activiti").artifactId("activiti-engine").version("5.16.EDW.24"),
-        mavenBundle().groupId("org.apache.commons").artifactId("commons-lang3").version("3.1"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-model").version("5.16.3"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-bpmn-converter").version("5.16.3"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-process-validation").version("5.16.3"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-image-generator").version("5.16.3"),
+        mavenBundle().groupId("org.activiti").artifactId("activiti-engine").version("5.16.3"),
+        mavenBundle().groupId("org.apache.commons").artifactId("commons-lang3").version("3.3.2"),
         mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-core").version("2.2.3"),
         mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-databind").version("2.2.3"),
         mavenBundle().groupId("com.fasterxml.jackson.core").artifactId("jackson-annotations").version("2.2.3"),

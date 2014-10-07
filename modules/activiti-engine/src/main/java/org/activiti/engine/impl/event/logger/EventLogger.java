@@ -10,14 +10,22 @@ import org.activiti.engine.delegate.event.ActivitiEvent;
 import org.activiti.engine.delegate.event.ActivitiEventListener;
 import org.activiti.engine.delegate.event.ActivitiEventType;
 import org.activiti.engine.impl.context.Context;
+import org.activiti.engine.impl.event.logger.handler.ActivityCompensatedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.ActivityCompletedEventHandler;
+import org.activiti.engine.impl.event.logger.handler.ActivityErrorReceivedEventHandler;
+import org.activiti.engine.impl.event.logger.handler.ActivityMessageEventHandler;
+import org.activiti.engine.impl.event.logger.handler.ActivitySignaledEventHandler;
 import org.activiti.engine.impl.event.logger.handler.ActivityStartedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.EventLoggerEventHandler;
 import org.activiti.engine.impl.event.logger.handler.ProcessInstanceEndedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.ProcessInstanceStartedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.SequenceFlowTakenEventHandler;
+import org.activiti.engine.impl.event.logger.handler.TaskAssignedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.TaskCompletedEventHandler;
 import org.activiti.engine.impl.event.logger.handler.TaskCreatedEventHandler;
+import org.activiti.engine.impl.event.logger.handler.VariableCreatedEventHandler;
+import org.activiti.engine.impl.event.logger.handler.VariableDeletedEventHandler;
+import org.activiti.engine.impl.event.logger.handler.VariableUpdatedEventHandler;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandContextCloseListener;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
@@ -52,20 +60,22 @@ public class EventLogger implements ActivitiEventListener {
 		
 		// Initialization of all event handlers
 		
-		// Engine lifecycle events
-		
-//		addEventHandler(ActivitiEventType.ENGINE_CREATED, EngineCreatedEventHandler.class);
-//		addEventHandler(ActivitiEventType.ENGINE_CLOSED, EngineClosedEventHandler.class);
-		
-		// Process execution events
-		
 		addEventHandler(ActivitiEventType.TASK_CREATED, TaskCreatedEventHandler.class);
 		addEventHandler(ActivitiEventType.TASK_COMPLETED, TaskCompletedEventHandler.class);
+		addEventHandler(ActivitiEventType.TASK_ASSIGNED, TaskAssignedEventHandler.class);
 		
 		addEventHandler(ActivitiEventType.SEQUENCEFLOW_TAKEN, SequenceFlowTakenEventHandler.class);
 		
 		addEventHandler(ActivitiEventType.ACTIVITY_COMPLETED, ActivityCompletedEventHandler.class);
 		addEventHandler(ActivitiEventType.ACTIVITY_STARTED, ActivityStartedEventHandler.class);
+		addEventHandler(ActivitiEventType.ACTIVITY_SIGNALED, ActivitySignaledEventHandler.class);
+		addEventHandler(ActivitiEventType.ACTIVITY_MESSAGE_RECEIVED, ActivityMessageEventHandler.class);
+		addEventHandler(ActivitiEventType.ACTIVITY_COMPENSATE, ActivityCompensatedEventHandler.class);
+		addEventHandler(ActivitiEventType.ACTIVITY_ERROR_RECEIVED, ActivityErrorReceivedEventHandler.class);
+		
+		addEventHandler(ActivitiEventType.VARIABLE_CREATED, VariableCreatedEventHandler.class);
+		addEventHandler(ActivitiEventType.VARIABLE_DELETED, VariableDeletedEventHandler.class);
+		addEventHandler(ActivitiEventType.VARIABLE_UPDATED, VariableUpdatedEventHandler.class);
 	}
 	
 	@Override
@@ -95,7 +105,7 @@ public class EventLogger implements ActivitiEventListener {
 
 					    @Override
 					    public void closed(CommandContext commandContext) {
-						    // For those who are interested: we can now broacast the events were added
+						    // For those who are interested: we can now broadcast the events were added
 								if (listeners != null) {
 									for (EventLoggerListener listener : listeners) {
 										listener.eventsAdded(EventLogger.this);
@@ -114,7 +124,7 @@ public class EventLogger implements ActivitiEventListener {
 	protected EventLoggerEventHandler getEventHandler(ActivitiEvent event) {
 
 		Class<? extends EventLoggerEventHandler> eventHandlerClass = null;
-		if (event.getType().equals(ActivitiEventType.ENTITY_CREATED)) {
+		if (event.getType().equals(ActivitiEventType.ENTITY_INITIALIZED)) {
 			Object entity = ((ActivitiEntityEvent) event).getEntity();
 			if (entity instanceof ExecutionEntity) {
 				ExecutionEntity executionEntity = (ExecutionEntity) entity;

@@ -27,6 +27,7 @@ import org.activiti.engine.runtime.NativeExecutionQuery;
 import org.activiti.engine.runtime.NativeProcessInstanceQuery;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
+import org.activiti.engine.runtime.ProcessInstanceBuilder;
 import org.activiti.engine.task.Event;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
@@ -61,12 +62,6 @@ public interface RuntimeService {
    * {@link ProcessInstanceQuery#processInstanceBusinessKey(String)}. Providing
    * such a business key is definitely a best practice.
    * 
-   * Note that a business key MUST be unique for the given process definition.
-   * Process instance from different process definition are allowed to have the
-   * same business key.
-   * 
-   * The combination of processdefinitionKey-businessKey must be unique.
-   * 
    * @param processDefinitionKey
    *          key of process definition, cannot be null.
    * @param businessKey
@@ -100,10 +95,6 @@ public interface RuntimeService {
    * then be used to easily look up that process instance , see
    * {@link ProcessInstanceQuery#processInstanceBusinessKey(String)}. Providing
    * such a business key is definitely a best practice.
-   * 
-   * Note that a business key MUST be unique for the given process definition.
-   * Process instance from different process definition are allowed to have the
-   * same business key.
    * 
    * The combination of processdefinitionKey-businessKey must be unique.
    * 
@@ -161,10 +152,6 @@ public interface RuntimeService {
    * {@link ProcessInstanceQuery#processInstanceBusinessKey(String)}. Providing
    * such a business key is definitely a best practice.
    * 
-   * Note that a business key MUST be unique for the given process definition.
-   * Process instance from different process definition are allowed to have the
-   * same business key.
-   * 
    * @param processDefinitionId
    *          the id of the process definition, cannot be null.
    * @param businessKey
@@ -198,10 +185,6 @@ public interface RuntimeService {
    * then be used to easily look up that process instance , see
    * {@link ProcessInstanceQuery#processInstanceBusinessKey(String)}. Providing
    * such a business key is definitely a best practice.
-   * 
-   * Note that a business key MUST be unique for the given process definition.
-   * Process instance from different process definition are allowed to have the
-   * same business key.
    * 
    * @param processDefinitionId
    *          the id of the process definition, cannot be null.
@@ -555,6 +538,26 @@ public interface RuntimeService {
    */
   Object getVariable(String executionId, String variableName);
 
+    /**
+     * The variable value. Searching for the variable is done in all scopes that
+     * are visible to the given execution (including parent scopes). Returns null
+     * when no variable value is found with the given name or when the value is
+     * set to null. Throws ClassCastException when cannot cast variable to
+     * given class
+     *
+     * @param executionId
+     *          id of execution, cannot be null.
+     * @param variableName
+     *          name of variable, cannot be null.
+     * @param variableClass
+     *          name of variable, cannot be null.
+     * @return the variable value or null if the variable is undefined or the
+     *         value of the variable is null.
+     * @throws ActivitiObjectNotFoundException
+     *           when no execution is found for the given executionId.
+     */
+    <T> T getVariable(String executionId, String variableName, Class<T> variableClass);
+
   /**
    * Check whether or not this execution has variable set with the given name,
    * Searching for the variable is done in all scopes that are visible to the
@@ -569,6 +572,14 @@ public interface RuntimeService {
    * null.
    */
   Object getVariableLocal(String executionId, String variableName);
+
+    /**
+     * The variable value for an execution. Returns the value casted to given class
+     * when the variable is set for the execution (and not searching parent scopes).
+     * Returns null when no variable value is found with the given name or when the
+     * value is set to null.
+     */
+    <T> T  getVariableLocal(String executionId, String variableName, Class<T> variableClass);
 
   /**
    * Check whether or not this execution has a local variable set with the given
@@ -987,5 +998,8 @@ public interface RuntimeService {
   
   /** The all events related to the given Process Instance. */
   List<Event> getProcessInstanceEvents(String processInstanceId);
+  
+  /**Create a ProcessInstanceBuilder*/
+  ProcessInstanceBuilder createProcessInstanceBuilder();
     
 }

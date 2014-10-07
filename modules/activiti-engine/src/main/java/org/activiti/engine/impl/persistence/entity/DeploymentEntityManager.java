@@ -96,7 +96,7 @@ public class DeploymentEntityManager extends AbstractManager {
         .getJobEntityManager()
         .findJobsByConfiguration(TimerStartEventJobHandler.TYPE, processDefinition.getKey());
       
-      if (timerStartJobs != null && timerStartJobs.size() > 0) {
+      if (timerStartJobs != null && !timerStartJobs.isEmpty()) {
         
         long nrOfVersions = new ProcessDefinitionQueryImpl(Context.getCommandContext())
           .processDefinitionKey(processDefinition.getKey())
@@ -104,7 +104,7 @@ public class DeploymentEntityManager extends AbstractManager {
 
         long nrOfProcessDefinitionsWithSameKey = 0;
         for (ProcessDefinition p : processDefinitions) {
-          if (!p.getId().equals(processDefinition) && p.getKey().equals(processDefinition)) {
+          if (!p.getId().equals(processDefinition.getId()) && p.getKey().equals(processDefinition.getKey())) {
             nrOfProcessDefinitionsWithSameKey++;
           }
         }

@@ -13,27 +13,37 @@
 package org.activiti.mule;
 
 import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
-import org.activiti.engine.impl.test.TestHelper;
+import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.runtime.ProcessInstance;
-import org.activiti.engine.test.Deployment;
-import org.mule.tck.FunctionalTestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Esteban Robles Luna
+ * @author Tijs Rademakers
  */
-public class MuleSendActivitiBehaviorTest extends FunctionalTestCase {
+public class MuleVMTest extends AbstractMuleTest {
 
-  @Deployment
-  public void testSend() {
-    ProcessEngine processEngine = muleContext.getRegistry().get("processEngine");
-    TestHelper.annotationDeploymentSetUp(processEngine, getClass(), getName());
-
+  @Test
+  public void testSend() throws Exception {
+    Assert.assertTrue(muleContext.isStarted());
+    
+    RepositoryService repositoryService = muleContext.getRegistry().get("repositoryService");
+    Deployment deployment = repositoryService.createDeployment()
+        .addClasspathResource("org/activiti/mule/testVM.bpmn20.xml")
+        .deploy();
     RuntimeService runtimeService = muleContext.getRegistry().get("runtimeService");
     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("muleProcess");
-    assertFalse(processInstance.isEnded());
+    Assert.assertFalse(processInstance.isEnded());
     Object result = runtimeService.getVariable(processInstance.getProcessInstanceId(), "theVariable");
-    assertEquals(10, result);
+    Assert.assertEquals(30, result);
+    runtimeService.deleteProcessInstance(processInstance.getId(), "test");
+    ProcessEngine processEngine = muleContext.getRegistry().get("processEngine");
+    processEngine.getHistoryService().deleteHistoricProcessInstance(processInstance.getId());
+    repositoryService.deleteDeployment(deployment.getId());
+    assertAndEnsureCleanDb(processEngine);
   }
 
   @Override

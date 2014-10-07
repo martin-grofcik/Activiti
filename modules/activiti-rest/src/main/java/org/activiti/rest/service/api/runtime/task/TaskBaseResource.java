@@ -97,6 +97,12 @@ public class TaskBaseResource extends SecuredResource {
     if(taskRequest.isCategorySet()) {
     	task.setCategory(taskRequest.getCategory());
     }
+    if(taskRequest.isTenantIdSet()) {
+      task.setTenantId(taskRequest.getTenantId());
+    }
+    if(taskRequest.isFormKeySet()) {
+      task.setFormKey(taskRequest.getFormKey());
+    }
 
     if(taskRequest.isDelegationStateSet()) {
       DelegationState delegationState = getDelegationState(taskRequest.getDelegationState());
@@ -192,16 +198,16 @@ public class TaskBaseResource extends SecuredResource {
     }
     taskQuery.taskDefinitionKeyLike(request.getTaskDefinitionKeyLike());
     if(request.getDueDate() != null) {
-      taskQuery.dueDate(request.getDueDate());
+      taskQuery.taskDueDate(request.getDueDate());
     }
     if(request.getDueBefore() != null) {
-      taskQuery.dueBefore(request.getDueBefore());
+      taskQuery.taskDueBefore(request.getDueBefore());
     }
     if(request.getDueAfter() != null) {
-      taskQuery.dueAfter(request.getDueAfter());
+      taskQuery.taskDueAfter(request.getDueAfter());
     }
     if(request.getWithoutDueDate() != null && request.getWithoutDueDate()) {
-    	taskQuery.withoutDueDate();
+    	taskQuery.withoutTaskDueDate();
     }
     
     if(request.getActive() != null) {
@@ -261,6 +267,10 @@ public class TaskBaseResource extends SecuredResource {
     
     if(Boolean.TRUE.equals(request.getWithoutTenantId())) {
     	taskQuery.taskWithoutTenantId();
+    }
+
+    if (request.getCandidateOrAssigned() != null) {
+      taskQuery.taskCandidateOrAssigned(request.getCandidateOrAssigned());
     }
     
     return new TaskPaginateList(this).paginateList(query, request, taskQuery, "id", properties);
