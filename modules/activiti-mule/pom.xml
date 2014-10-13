@@ -42,6 +42,7 @@
             <buildDirectory>${project.build.directory}</buildDirectory>
           </systemPropertyVariables>
           <runOrder>alphabetical</runOrder>
+          <excludes><exclude>org/activiti/mule/AbstractMuleTest.java</exclude></excludes>
           <argLine>-Duser.language=en</argLine>
         </configuration>
       </plugin>
@@ -259,7 +260,7 @@
       <repository>
           <id>mulesoft-releases</id>
           <name>MuleSoft Releases Repository</name>
-          <url>https://repository-master.mulesoft.org/nexus/content/groups/public</url>
+          <url>http://repository.mulesoft.org/releases/</url>
           <layout>default</layout>
       </repository>
   </repositories>
