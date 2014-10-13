@@ -12,6 +12,12 @@
  */
 package org.activiti.engine.impl.persistence.entity;
 
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.delegate.event.ActivitiEventType;
@@ -24,12 +30,6 @@ import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.jobexecutor.JobHandler;
 import org.activiti.engine.runtime.Job;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Stub of the common parts of a Job. You will normally work with a subclass of
@@ -51,7 +51,7 @@ public abstract class JobEntity implements Job, PersistentObject, HasRevision, B
   protected String id;
   protected int revision;
 
-  protected Date duedate = new Date(0);
+  protected Date duedate;
 
   protected String lockOwner = null;
   protected Date lockExpirationTime = null;

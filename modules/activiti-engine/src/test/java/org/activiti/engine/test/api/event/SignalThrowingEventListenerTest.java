@@ -189,7 +189,7 @@ public class SignalThrowingEventListenerTest extends PluggableActivitiTestCase {
 			ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testSignal");
 			assertNotNull(processInstance);
 			
-			waitForJobExecutorToProcessAllJobs(2000, 100);
+			waitForJobExecutorToProcessAllJobs(6000, 100);
 			
 			Job failedJob = managementService.createJobQuery()
 					.withException()
