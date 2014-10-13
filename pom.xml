@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -1023,6 +1023,20 @@
     <system>Bamboo</system>
     <url>http://bamboo.ci.codehaus.org/browse/ACT</url>
   </ciManagement>
+
+  <distributionManagement>
+    <repository>
+      <id>edorasware-mirror</id>
+      <name>Repository for deployment of releases</name>
+      <url>${edorasware-deploy-path-releases}</url>
+    </repository>
+    <snapshotRepository>
+      <id>edorasware-mirror</id>
+      <name>Repository for deployment of snapshots</name>
+      <url>${edorasware-deploy-path-snapshots}</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <scm>
     <url>git@github.com:Activiti/Activiti.git</url>
     <connection>scm:git:git@github.com:Activiti/Activiti.git</connection>
