@@ -10,7 +10,7 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.16.3.EDW.2</version>
+    <version>5.16.3.EDW.1</version>
   </parent>
   
   <properties>
@@ -263,6 +263,11 @@
           <url>http://repository.mulesoft.org/releases/</url>
           <layout>default</layout>
       </repository>
+    <repository>
+      <id>edoras-dev-14.edorasware.local</id>
+      <name>edoras-dev-14.edorasware.local-releases</name>
+      <url>https://repo.edorasware.com/mulesoft-master</url>
+    </repository>
   </repositories>
 
 </project>
