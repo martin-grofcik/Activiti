@@ -13,7 +13,10 @@
 package org.activiti.engine.test.api.event;
 
 import org.activiti.engine.delegate.event.*;
+import org.activiti.engine.delegate.event.impl.ActivitiActivityCancelledEventImpl;
+import org.activiti.engine.delegate.event.impl.ActivitiProcessCancelledEventImpl;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
+import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.impl.test.PluggableActivitiTestCase;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
@@ -21,6 +24,11 @@ import org.activiti.engine.test.Deployment;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotEquals;
 
 /**
  * Test case for all {@link ActivitiEvent}s related to process instances.
@@ -301,6 +309,100 @@ public class ProcessInstanceEventsTest extends PluggableActivitiTestCase {
     List<ActivitiEvent> taskCancelledEvents = listener.filterEvents(ActivitiEventType.ACTIVITY_CANCELLED);
     assertEquals("There should be no ActivitiEventType.ACTIVITY_CANCELLED event.", 0, taskCancelledEvents.size());
 
+  }
+
+  @Deployment(resources = {"org/activiti/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"})
+  public void testProcessInstanceTerminatedEvents_complete() throws Exception {
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("oneTaskProcess");
+    assertNotNull(processInstance);
+
+    Task task = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
+    taskService.complete(task.getId());
+
+    List<ActivitiEvent> processTerminatedEvents = listener.filterEvents(ActivitiEventType.PROCESS_CANCELLED);
+    assertEquals("There should be no ActivitiEventType.PROCESS_TERMINATED event after process complete.", 0, processTerminatedEvents.size());
+  }
+
+  @Deployment(resources="org/activiti/engine/test/bpmn/event/end/TerminateEndEventTest.testProcessTerminate.bpmn")
+  public void testProcessInstanceTerminatedEvents() throws Exception {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("terminateEndEventExample");
+
+    long executionEntities = runtimeService.createExecutionQuery().processInstanceId(pi.getId()).count();
+    assertEquals(3, executionEntities);
+
+    Task task = taskService.createTaskQuery().processInstanceId(pi.getId()).taskDefinitionKey("preTerminateTask").singleResult();
+    taskService.complete(task.getId());
+
+    List<ActivitiEvent> processTerminatedEvents = listener.filterEvents(ActivitiEventType.PROCESS_CANCELLED);
+    assertEquals("There should be exactly one ActivitiEventType.PROCESS_CANCELLED event after the task complete.", 1, processTerminatedEvents.size());
+    ActivitiProcessCancelledEventImpl activitiEvent = (ActivitiProcessCancelledEventImpl) processTerminatedEvents.get(0);
+    assertThat(activitiEvent.getProcessInstanceId(), is(pi.getProcessInstanceId()));
+    assertThat(((ActivityImpl) activitiEvent.getCause()).getId(), is("EndEvent_2"));
+
+    List<ActivitiEvent> activityTerminatedEvents = listener.filterEvents(ActivitiEventType.ACTIVITY_CANCELLED);
+    assertThat("There should be exactly two ActivitiEventType.ACTIVITY_CANCELLED event after the task complete.", activityTerminatedEvents.size(), is(2));
+    ActivitiActivityCancelledEventImpl activityEvent = (ActivitiActivityCancelledEventImpl) activityTerminatedEvents.get(0);
+    assertThat("The user task must be terminated", activityEvent.getActivityId(), is("preNormalTerminateTask"));
+    assertThat("The cause must be terminate end event", ((ActivityImpl) activityEvent.getCause()).getId(), is("EndEvent_2"));
+    activityEvent = (ActivitiActivityCancelledEventImpl) activityTerminatedEvents.get(1);
+    assertThat("The gateway must be terminated", activityEvent.getActivityId(), is("ParallelGateway_1"));
+    assertThat("The cause must be terminate end event", ((ActivityImpl) activityEvent.getCause()).getId(), is("EndEvent_2"));
+  }
+
+  @Deployment(resources = {
+          "org/activiti/engine/test/bpmn/event/end/TerminateEndEventTest.testTerminateInCallActivity.bpmn",
+          "org/activiti/engine/test/bpmn/event/end/TerminateEndEventTest.subProcessTerminate.bpmn"
+  })
+  public void testProcessInstanceTerminatedEvents_callActivity() throws Exception {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("terminateEndEventExample");
+
+    // should terminate the called process and continue the parent
+    long executionEntities = runtimeService.createExecutionQuery().count();
+    assertEquals(1, executionEntities);
+
+    Task task = taskService.createTaskQuery().processInstanceId(pi.getId()).taskDefinitionKey("preNormalEnd").singleResult();
+    taskService.complete(task.getId());
+
+    assertProcessEnded(pi.getId());
+    List<ActivitiEvent> processTerminatedEvents = listener.filterEvents(ActivitiEventType.PROCESS_CANCELLED);
+    assertEquals("There should be exactly one ActivitiEventType.PROCESS_TERMINATED event after the task complete.", 1, processTerminatedEvents.size());
+    ActivitiProcessCancelledEventImpl processCancelledEvent = (ActivitiProcessCancelledEventImpl) processTerminatedEvents.get(0);
+    assertNotEquals(pi.getProcessInstanceId(), processCancelledEvent.getProcessInstanceId());
+    assertThat(processCancelledEvent.getProcessDefinitionId(), containsString("terminateEndEventSubprocessExample"));
+
+    List<ActivitiEvent> activityTerminatedEvents = listener.filterEvents(ActivitiEventType.ACTIVITY_CANCELLED);
+    assertThat("There is no ActivitiEventType.ACTIVITY_CANCELLED event after the task complete.", activityTerminatedEvents.isEmpty(), is(true));
+  }
+
+  @Deployment(resources = {
+          "org/activiti/engine/test/bpmn/event/end/TerminateEndEventTest.testTerminateInParentProcess.bpmn",
+          "org/activiti/engine/test/api/runtime/oneTaskProcess.bpmn20.xml"
+  })
+  public void testProcessInstanceTerminatedEvents_terminateInParentProcess() throws Exception {
+    ProcessInstance pi = runtimeService.startProcessInstanceByKey("terminateParentProcess");
+
+    // should terminate the called process and continue the parent
+    Task task = taskService.createTaskQuery().processInstanceId(pi.getId()).taskDefinitionKey("preTerminateEnd").singleResult();
+    taskService.complete(task.getId());
+
+    assertProcessEnded(pi.getId());
+    List<ActivitiEvent> processTerminatedEvents = listener.filterEvents(ActivitiEventType.PROCESS_CANCELLED);
+    assertEquals("There should be exactly one ActivitiEventType.PROCESS_TERMINATED event after the task complete.", 1, processTerminatedEvents.size());
+    ActivitiProcessCancelledEventImpl processCancelledEvent = (ActivitiProcessCancelledEventImpl) processTerminatedEvents.get(0);
+    assertThat(processCancelledEvent.getProcessInstanceId(), is(pi.getProcessInstanceId()));
+    assertThat(processCancelledEvent.getProcessDefinitionId(), containsString("terminateParentProcess"));
+
+    List<ActivitiEvent> activityTerminatedEvents = listener.filterEvents(ActivitiEventType.ACTIVITY_CANCELLED);
+    assertThat("3 activities must be cancelled.", activityTerminatedEvents.size(), is(3));
+    ActivitiActivityCancelledEventImpl activityEvent = (ActivitiActivityCancelledEventImpl) activityTerminatedEvents.get(0);
+    assertThat("The user task must be terminated in the called sub process.", activityEvent.getActivityId(), is("theTask"));
+    assertThat("The cause must be terminate end event", ((ActivityImpl) activityEvent.getCause()).getId(), is("EndEvent_3"));
+    activityEvent = (ActivitiActivityCancelledEventImpl) activityTerminatedEvents.get(1);
+    assertThat("The call activity must be terminated", activityEvent.getActivityId(), is("CallActivity_1"));
+    assertThat("The cause must be terminate end event", ((ActivityImpl) activityEvent.getCause()).getId(), is("EndEvent_3"));
+    activityEvent = (ActivitiActivityCancelledEventImpl) activityTerminatedEvents.get(2);
+    assertThat("The gateway must be terminated", activityEvent.getActivityId(), is("ParallelGateway_1"));
+    assertThat("The cause must be terminate end event", ((ActivityImpl) activityEvent.getCause()).getId(), is("EndEvent_3"));
   }
 
   @Override
