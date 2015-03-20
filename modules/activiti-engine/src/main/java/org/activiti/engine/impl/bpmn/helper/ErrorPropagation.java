@@ -55,21 +55,28 @@ public class ErrorPropagation {
   public static void propagateError(BpmnError error, ActivityExecution execution) throws Exception {    
     propagateError(error.getErrorCode(), execution);
   }
-  
+
   public static void propagateError(String errorCode, ActivityExecution execution) throws Exception {
 
-	  while (execution != null) {
-		    String eventHandlerId = findLocalErrorEventHandler(execution, errorCode); 
-		    if (eventHandlerId != null) {
-		    	 executeCatch(eventHandlerId, execution, errorCode);
-		    	 break;
-		    }
-		    execution = getSuperExecution(execution);
-	  };
-	  if (execution == null) {
-		  throw new BpmnError(errorCode, "No catching boundary event found for error with errorCode '" 
-	                + errorCode + "', neither in same process nor in parent process");		  
-	  }
+    while (execution != null) {
+      String eventHandlerId = findLocalErrorEventHandler(execution, errorCode);
+      if (eventHandlerId != null) {
+        executeCatch(eventHandlerId, execution, errorCode);
+        break;
+      }
+      if (execution.isProcessInstanceType()) {
+        // dispatch process completed event
+        if (Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+          Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
+                  ActivitiEventBuilder.createEntityEvent(ActivitiEventType.PROCESS_COMPLETED, execution));
+        }
+      }
+      execution = getSuperExecution(execution);
+    }
+    if (execution == null) {
+      throw new BpmnError(errorCode, "No catching boundary event found for error with errorCode '"
+              + errorCode + "', neither in same process nor in parent process");
+    }
   }
 
 
@@ -181,5 +188,5 @@ public class ErrorPropagation {
       leavingExecution.executeActivity(borderEventActivity);
     }
   }
-  
+
 }
