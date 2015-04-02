@@ -368,7 +368,7 @@ public class DefaultActivityBehaviorFactory extends AbstractBehaviorFactory impl
   }
   
   public TerminateEndEventActivityBehavior createTerminateEndEventActivityBehavior(EndEvent endEvent) {
-    return new TerminateEndEventActivityBehavior();
+    return new TerminateEndEventActivityBehavior(endEvent);
   }
 
   // Boundary Events

@@ -12,6 +12,7 @@
  */
 package org.activiti.engine.impl.bpmn.behavior;
 
+import org.activiti.bpmn.model.EndEvent;
 import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.bpmn.helper.ScopeUtil;
 import org.activiti.engine.impl.context.Context;
@@ -24,6 +25,12 @@ import org.activiti.engine.impl.pvm.runtime.InterpretableExecution;
  * @author Nico Rehwaldt
  */
 public class TerminateEndEventActivityBehavior extends FlowNodeActivityBehavior {
+
+  protected final EndEvent endEvent;
+
+  public TerminateEndEventActivityBehavior(EndEvent endEvent) {
+    this.endEvent = endEvent.clone();
+  }
 
   public void execute(ActivityExecution execution) throws Exception {
     ActivityImpl terminateEndEventActivity = (ActivityImpl) execution.getActivity();
@@ -41,6 +48,10 @@ public class TerminateEndEventActivityBehavior extends FlowNodeActivityBehavior 
     ((InterpretableExecution)scopeExecution).setActivity(terminateEndEventActivity);
     // end the scope execution
     scopeExecution.end();
+  }
+
+  public EndEvent getEndEvent() {
+    return this.endEvent;
   }
 
   private void sendCancelledEvent(ActivityExecution execution, ActivityImpl terminateEndEventActivity, ActivityExecution scopeExecution) {
