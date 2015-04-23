@@ -104,7 +104,7 @@ public class JobEntityManager extends AbstractManager {
       .addTransactionListener(TransactionState.COMMITTED, transactionListener);
   }
   
-  protected void hintJobExecutor(JobEntity job) {  
+  public void hintJobExecutor(JobEntity job) {
     JobExecutor jobExecutor = Context.getProcessEngineConfiguration().getJobExecutor();
 
     // notify job executor:      
