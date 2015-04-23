@@ -55,7 +55,7 @@ public class ErrorPropagation {
   public static void propagateError(BpmnError error, ActivityExecution execution) throws Exception {    
     propagateError(error.getErrorCode(), execution);
   }
-
+  
   public static void propagateError(String errorCode, ActivityExecution execution) throws Exception {
 
     while (execution != null) {
@@ -188,5 +188,5 @@ public class ErrorPropagation {
       leavingExecution.executeActivity(borderEventActivity);
     }
   }
-
+  
 }

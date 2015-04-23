@@ -47,7 +47,9 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
       new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_ASSIGNEE), 
       new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_PRIORITY), 
       new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_CANDIDATEUSERS), 
-      new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_CANDIDATEGROUPS)
+      new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_CANDIDATEGROUPS),
+      new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_CATEGORY),
+      new ExtensionAttribute(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_SKIP_EXPRESSION)
   );
 
   public UserTaskXMLConverter() {
@@ -99,6 +101,11 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
       userTask.getCandidateGroups().addAll(parseDelimitedList(expression));
     }
 
+    if (StringUtils.isNotEmpty(xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_SKIP_EXPRESSION))) {
+      String expression = xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_USER_SKIP_EXPRESSION);
+      userTask.setSkipExpression(expression);
+    }
+
     BpmnXMLUtil.addCustomAttributes(xtr, userTask, defaultElementAttributes, 
         defaultActivityAttributes, defaultUserTaskAttributes);
 
@@ -120,6 +127,9 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
     writeQualifiedAttribute(ATTRIBUTE_FORM_FORMKEY, userTask.getFormKey(), xtw);
     if (userTask.getPriority() != null) {
       writeQualifiedAttribute(ATTRIBUTE_TASK_USER_PRIORITY, userTask.getPriority().toString(), xtw);
+    }
+    if (userTask.getSkipExpression() != null) {
+      writeQualifiedAttribute(ATTRIBUTE_TASK_USER_SKIP_EXPRESSION, userTask.getSkipExpression(), xtw);
     }
     // write custom attributes
     BpmnXMLUtil.writeCustomAttributes(userTask.getAttributes().values(), xtw, defaultElementAttributes, 
@@ -156,7 +166,7 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
 
   protected void writeCustomIdentities(UserTask userTask,String identityType, Set<String> users, Set<String> groups, XMLStreamWriter xtw) throws Exception {
 	  xtw.writeStartElement(ACTIVITI_EXTENSIONS_PREFIX, ELEMENT_CUSTOM_RESOURCE, ACTIVITI_EXTENSIONS_NAMESPACE);
-	  xtw.writeAttribute(ACTIVITI_EXTENSIONS_PREFIX, ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_NAME, identityType);
+	  writeDefaultAttribute(ATTRIBUTE_NAME, identityType, xtw);
       
     List<String> identityList = new ArrayList<String>();
     
@@ -223,11 +233,15 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
           List<String> assignmentList = CommaSplitter.splitCommas(xtr.getElementText());
           
           for (String assignmentValue : assignmentList) {
-            if (assignmentValue == null)
+            if (assignmentValue == null) {
               continue;
+            }
+            
             assignmentValue = assignmentValue.trim();
-            if (assignmentValue.length() == 0)
+            
+            if (assignmentValue.length() == 0) {
               continue;
+            }
 
             String userPrefix = "user(";
             String groupPrefix = "group(";
@@ -249,13 +263,18 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
   public class CustomIdentityLinkParser extends BaseChildElementParser {
 
     public String getElementName() {
-	  return ELEMENT_CUSTOM_RESOURCE;
-	}
+      return ELEMENT_CUSTOM_RESOURCE;
+    }
 	    
     public void parseChildElement(XMLStreamReader xtr, BaseElement parentElement, BpmnModel model) throws Exception {
 	    String identityLinkType = xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_NAME);
 	    
-	    if(identityLinkType == null) return;
+	    // the attribute value may be unqualified
+	    if (identityLinkType == null) {
+	      identityLinkType = xtr.getAttributeValue(null, ATTRIBUTE_NAME);
+	    }
+	    
+	    if (identityLinkType == null) return;
 	    
 	    String resourceElement = XMLStreamReaderUtil.moveDown(xtr);
 	      if (StringUtils.isNotEmpty(resourceElement) && ELEMENT_RESOURCE_ASSIGNMENT.equals(resourceElement)) {
@@ -265,11 +284,15 @@ public class UserTaskXMLConverter extends BaseBpmnXMLConverter {
 	          List<String> assignmentList = CommaSplitter.splitCommas(xtr.getElementText());
 	          
 	          for (String assignmentValue : assignmentList) {
-	            if (assignmentValue == null)
+	            if (assignmentValue == null) {
 	              continue;
+	            }
+	            
 	            assignmentValue = assignmentValue.trim();
-	            if (assignmentValue.length() == 0)
+	            
+	            if (assignmentValue.length() == 0) {
 	              continue;
+	            }
 
 	            String userPrefix = "user(";
 	            String groupPrefix = "group(";

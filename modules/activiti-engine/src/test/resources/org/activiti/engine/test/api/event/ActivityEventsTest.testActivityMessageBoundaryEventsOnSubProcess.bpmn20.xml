@@ -16,7 +16,7 @@
     </subProcess>
     <endEvent id="cloudendnoneevent2">
     </endEvent>
-    <boundaryEvent attachedToRef="subProcess" cancelActivity="true" id="boundaryMessageEventCatching"
+    <boundaryEvent attachedToRef="cloudformtask1" cancelActivity="true" id="boundaryMessageEventCatching"
                    parallelMultiple="false">
       <messageEventDefinition id="messageEventDefinition1" messageRef="message1">
       </messageEventDefinition>

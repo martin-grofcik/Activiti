@@ -10,7 +10,7 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.16.3.EDW.9</version>
+    <version>5.17.0.EDW.1</version>
   </parent>
   
   <properties>
@@ -42,8 +42,6 @@
             <buildDirectory>${project.build.directory}</buildDirectory>
           </systemPropertyVariables>
           <runOrder>alphabetical</runOrder>
-          <excludes><exclude>org/activiti/mule/AbstractMuleTest.java</exclude></excludes>
-          <argLine>-Duser.language=en</argLine>
         </configuration>
       </plugin>
       <plugin>
@@ -137,8 +135,8 @@
       <artifactId>commons-logging</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -263,11 +261,6 @@
           <url>http://repository.mulesoft.org/releases/</url>
           <layout>default</layout>
       </repository>
-    <repository>
-      <id>edoras-dev-14.edorasware.local</id>
-      <name>edoras-dev-14.edorasware.local-releases</name>
-      <url>https://repo.edorasware.com/mulesoft-master</url>
-    </repository>
   </repositories>
 
 </project>

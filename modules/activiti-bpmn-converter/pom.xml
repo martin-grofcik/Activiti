@@ -10,7 +10,7 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.16.3.EDW.9</version>
+    <version>5.17.0.EDW.1</version>
   </parent>
   
   <properties>
@@ -18,7 +18,7 @@
       org.activiti.bpmn.converter
     </activiti.artifact>
     <activiti.osgi.export.additional>
-      org.activiti.bpmn.constants,org.activiti.bpmn.util
+      org.activiti.bpmn.constants,org.activiti.bpmn.util,org.activiti.bpmn.exceptions
     </activiti.osgi.export.additional>
   </properties>
 
