@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.activiti</groupId>
         <artifactId>spring-boot</artifactId>
-        <version>5.17.0.EDW.1</version>
+        <version>${activiti.version}</version>
     </parent>
 
     <artifactId>spring-boot-starters</artifactId>
