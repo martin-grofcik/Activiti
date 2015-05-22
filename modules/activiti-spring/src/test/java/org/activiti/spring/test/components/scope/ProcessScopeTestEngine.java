@@ -37,26 +37,26 @@ class ProcessScopeTestEngine {
 
         String statefulObjectVariableKey = keyForObjectType(runtimeVars, StatefulObject.class);
 
-        assertTrue(runtimeVars.size() > 0);
+        assertTrue(!runtimeVars.isEmpty());
         assertTrue(StringUtils.hasText(statefulObjectVariableKey));
 
         StatefulObject scopedObject = (StatefulObject) runtimeService.getVariable(processInstance.getId(), statefulObjectVariableKey);
         assertNotNull(scopedObject);
         assertTrue(StringUtils.hasText(scopedObject.getName()));
-        assertEquals(scopedObject.getVisitedCount(), 2);
+        assertEquals(2, scopedObject.getVisitedCount());
 
         // the process has paused
         String procId = processInstance.getProcessInstanceId();
 
         List<Task> tasks = taskService.createTaskQuery().executionId(procId).list();
-        assertEquals(tasks.size(), 1);
+        assertEquals(1, tasks.size());
 
         Task t = tasks.iterator().next();
         this.taskService.claim(t.getId(), "me");
         this.taskService.complete(t.getId());
 
         scopedObject = (StatefulObject) runtimeService.getVariable(processInstance.getId(), statefulObjectVariableKey);
-        assertEquals(scopedObject.getVisitedCount(), 3);
+        assertEquals(3, scopedObject.getVisitedCount());
 
         assertEquals(customerId, scopedObject.getCustomerId());
         return scopedObject;

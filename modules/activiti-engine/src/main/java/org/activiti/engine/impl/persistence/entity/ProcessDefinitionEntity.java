@@ -12,6 +12,8 @@
  */
 package org.activiti.engine.impl.persistence.entity;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +23,8 @@ import java.util.Set;
 
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.delegate.Expression;
+import org.activiti.engine.delegate.event.ActivitiEventType;
+import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.delegate.event.impl.ActivitiEventSupport;
 import org.activiti.engine.impl.bpmn.parser.BpmnParse;
 import org.activiti.engine.impl.context.Context;
@@ -63,12 +67,17 @@ public class ProcessDefinitionEntity extends ProcessDefinitionImpl implements Pr
   protected List<IdentityLinkEntity> definitionIdentityLinkEntities = new ArrayList<IdentityLinkEntity>();
   protected Set<Expression> candidateStarterUserIdExpressions = new HashSet<Expression>();
   protected Set<Expression> candidateStarterGroupIdExpressions = new HashSet<Expression>();
-  // TODO: serialisation support?
   protected transient ActivitiEventSupport eventSupport;
   
   public ProcessDefinitionEntity() {
     super(null);
     eventSupport = new ActivitiEventSupport();
+  }
+  
+  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+	in.defaultReadObject();
+    eventSupport = new ActivitiEventSupport();
+
   }
   
   public ExecutionEntity createProcessInstance(String businessKey, ActivityImpl initial) {
@@ -109,11 +118,16 @@ public class ProcessDefinitionEntity extends ProcessDefinitionImpl implements Pr
       processInstance.setVariable(initiatorVariableName, authenticatedUserId);
     }
     if (authenticatedUserId != null) {
-      processInstance.addIdentityLink(authenticatedUserId, IdentityLinkType.STARTER);
+      processInstance.addIdentityLink(authenticatedUserId, null, IdentityLinkType.STARTER);
     }
     
     Context.getCommandContext().getHistoryManager()
       .recordProcessInstanceStart(processInstance);
+    
+    if (Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+        Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
+                ActivitiEventBuilder.createEntityEvent(ActivitiEventType.ENTITY_CREATED, processInstance));
+    }
     
     return processInstance;
   }
@@ -302,6 +316,10 @@ public class ProcessDefinitionEntity extends ProcessDefinitionImpl implements Pr
   
   public boolean isGraphicalNotationDefined() {
     return isGraphicalNotationDefined;
+  }
+  
+  public boolean hasGraphicalNotation() {
+  	return isGraphicalNotationDefined;
   }
   
   public void setGraphicalNotationDefined(boolean isGraphicalNotationDefined) {

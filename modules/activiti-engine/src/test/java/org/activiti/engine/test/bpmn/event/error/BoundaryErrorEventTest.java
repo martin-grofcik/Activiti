@@ -22,6 +22,7 @@ import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.impl.history.HistoryLevel;
 import org.activiti.engine.impl.test.PluggableActivitiTestCase;
 import org.activiti.engine.impl.util.CollectionUtil;
+import org.activiti.engine.impl.util.JvmUtil;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 
@@ -77,7 +78,7 @@ public class BoundaryErrorEventTest extends PluggableActivitiTestCase {
     
     // Completing task 2, will cause the end error event to throw error with code 123
     taskService.complete(tasks.get(1).getId());
-    tasks = taskService.createTaskQuery().list();
+    taskService.createTaskQuery().list();
     Task taskAfterError = taskService.createTaskQuery().singleResult();
     assertEquals("task outside subprocess", taskAfterError.getName());
   }
@@ -106,7 +107,7 @@ public class BoundaryErrorEventTest extends PluggableActivitiTestCase {
     assertProcessEnded(procId);
     
     // Completing task B will lead to task C
-    procId = runtimeService.startProcessInstanceByKey(processDefinitionKey).getId();
+    runtimeService.startProcessInstanceByKey(processDefinitionKey).getId();
     tasks = taskService.createTaskQuery().orderByTaskName().asc().list();
     assertEquals(2, tasks.size());
     assertEquals("task A", tasks.get(0).getName());
@@ -369,11 +370,21 @@ public class BoundaryErrorEventTest extends PluggableActivitiTestCase {
   }
 
   @Deployment(resources = {
-          "org/activiti/engine/test/bpmn/event/error/BoundaryErrorEventTest.testCatchErrorOnScriptTask.bpmn20.xml"
+          "org/activiti/engine/test/bpmn/event/error/BoundaryErrorEventTest.testCatchErrorOnGroovyScriptTask.bpmn20.xml"
   })
-  public void testCatchErrorOnScriptTask() {
+  public void testCatchErrorOnGroovyScriptTask() {
       String procId = runtimeService.startProcessInstanceByKey("catchErrorOnScriptTask").getId();
       assertProcessEnded(procId);
+  }
+  
+  @Deployment(resources = {
+          "org/activiti/engine/test/bpmn/event/error/BoundaryErrorEventTest.testCatchErrorOnJavaScriptScriptTask.bpmn20.xml"
+  })
+  public void testCatchErrorOnJavaScriptScriptTask() {
+  	if (JvmUtil.isAtLeastJDK7()) {
+  		String procId = runtimeService.startProcessInstanceByKey("catchErrorOnScriptTask").getId();
+  		assertProcessEnded(procId);
+  	}
   }
 
   @Deployment(resources = {

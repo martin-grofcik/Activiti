@@ -12,15 +12,16 @@
  */
 package org.activiti.engine.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.activiti.engine.ActivitiIllegalArgumentException;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
 import org.activiti.engine.impl.persistence.entity.SuspensionState;
 import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ExecutionQuery;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -54,7 +55,17 @@ public class ExecutionQueryImpl extends AbstractVariableQueryImpl<ExecutionQuery
   protected boolean includeChildExecutionsWithBusinessKeyQuery;
   protected boolean isActive;
   protected String involvedUser;
-  
+  protected Set<String> processDefinitionKeys;
+  protected Set<String> processDefinitionIds;
+
+  // Not exposed in API, but here for the ProcessInstanceQuery support, since the name lives on the
+  // Execution entity/table
+  protected String name;
+  protected String nameLike;
+  protected String nameLikeIgnoreCase;
+  protected String deploymentId;
+  protected List<String> deploymentIds;
+  protected ExecutionQueryImpl orQueryObject;
   
   public ExecutionQueryImpl() {
   }
@@ -322,17 +333,51 @@ public class ExecutionQueryImpl extends AbstractVariableQueryImpl<ExecutionQuery
   public void setInvolvedUser(String involvedUser) {
     this.involvedUser = involvedUser;
   }
+  public Set<String> getProcessDefinitionIds() {
+    return processDefinitionIds;
+  }
+  public Set<String> getProcessDefinitionKeys() {
+    return processDefinitionKeys;
+  }
   public String getParentId() {
     return parentId;
   }
+
   public String getTenantId() {
-		return tenantId;
+    return tenantId;
+  }
+
+  public String getTenantIdLike() {
+    return tenantIdLike;
+  }
+
+  public boolean isWithoutTenantId() {
+    return withoutTenantId;
+  }
+  
+  public String getName() {
+    return name;
+  }
+  
+  public String getNameLike() {
+    return nameLike;
+  }
+  
+  public void setName(String name) {
+    this.name = name;
+  }
+  
+  public void setNameLike(String nameLike) {
+    this.nameLike = nameLike;
+  }
+
+	public String getNameLikeIgnoreCase() {
+		return nameLikeIgnoreCase;
 	}
-	public String getTenantIdLike() {
-		return tenantIdLike;
+
+	public void setNameLikeIgnoreCase(String nameLikeIgnoreCase) {
+		this.nameLikeIgnoreCase = nameLikeIgnoreCase;
 	}
-	public boolean isWithoutTenantId() {
-		return withoutTenantId;
-	}
+  
   
 }

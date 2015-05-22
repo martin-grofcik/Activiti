@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * @author Joram Barrez
  */
@@ -42,7 +41,9 @@ public class ServiceTaskParseHandler extends AbstractExternalInvocationBpmnParse
     
       ActivityImpl activity = createActivityOnCurrentScope(bpmnParse, serviceTask, BpmnXMLConstants.ELEMENT_TASK_SERVICE);
       activity.setAsync(serviceTask.isAsynchronous());
+      activity.setFailedJobRetryTimeCycleValue(serviceTask.getFailedJobRetryTimeCycleValue());
       activity.setExclusive(!serviceTask.isNotExclusive());
+      activity.setMapExceptions(serviceTask.getMapExceptions());
 
       // Email, Mule and Shell service tasks
       if (StringUtils.isNotEmpty(serviceTask.getType())) {

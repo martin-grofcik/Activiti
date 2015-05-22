@@ -14,18 +14,21 @@ package org.activiti.engine.impl.jobexecutor;
 
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ProcessEngineConfiguration;
+import org.activiti.engine.delegate.event.ActivitiEventType;
+import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
 import org.activiti.engine.impl.cmd.StartProcessInstanceCmd;
 import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.deploy.DeploymentManager;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.JobEntity;
+import org.activiti.engine.impl.util.json.JSONObject;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class TimerStartEventJobHandler implements JobHandler {
+public class TimerStartEventJobHandler extends TimerEventHandler implements JobHandler {
 
   private static Logger log = LoggerFactory.getLogger(TimerStartEventJobHandler.class);
 
@@ -39,12 +42,14 @@ public class TimerStartEventJobHandler implements JobHandler {
     DeploymentManager deploymentCache = Context
             .getProcessEngineConfiguration()
             .getDeploymentManager();
-    
+
+    String nestedActivityId = TimerEventHandler.getActivityIdFromConfiguration(configuration);
+
     ProcessDefinition processDefinition = null;
     if (job.getTenantId() == null || ProcessEngineConfiguration.NO_TENANT_ID.equals(job.getTenantId())) {
-    		processDefinition = deploymentCache.findDeployedLatestProcessDefinitionByKey(configuration);
+    		processDefinition = deploymentCache.findDeployedLatestProcessDefinitionByKey(nestedActivityId);
     } else {
-    	processDefinition = deploymentCache.findDeployedLatestProcessDefinitionByKeyAndTenantId(configuration, job.getTenantId());
+    	processDefinition = deploymentCache.findDeployedLatestProcessDefinitionByKeyAndTenantId(nestedActivityId, job.getTenantId());
     }
     
     if (processDefinition == null) {
@@ -53,7 +58,12 @@ public class TimerStartEventJobHandler implements JobHandler {
     
     try {
       if(!processDefinition.isSuspended()) {
-        new StartProcessInstanceCmd(configuration, null, null, null, job.getTenantId()).execute(commandContext);
+        if (commandContext.getEventDispatcher().isEnabled()) {
+          commandContext.getEventDispatcher().dispatchEvent(
+            ActivitiEventBuilder.createEntityEvent(ActivitiEventType.TIMER_FIRED, job));
+        }
+
+        new StartProcessInstanceCmd(nestedActivityId, null, null, null, job.getTenantId()).execute(commandContext);
       } else {
         log.debug("ignoring timer of suspended process definition {}", processDefinition.getName());
       }

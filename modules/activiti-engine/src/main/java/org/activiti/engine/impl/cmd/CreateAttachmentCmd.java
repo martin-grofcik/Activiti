@@ -19,7 +19,6 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.engine.delegate.event.ActivitiEventType;
 import org.activiti.engine.delegate.event.impl.ActivitiEventBuilder;
-import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.db.DbSqlSession;
 import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.interceptor.Command;
@@ -71,6 +70,7 @@ public class CreateAttachmentCmd implements Command<Attachment> {
     attachment.setProcessInstanceId(processInstanceId);
     attachment.setUrl(url);
     attachment.setUserId(Authentication.getAuthenticatedUserId());
+    attachment.setTime(commandContext.getProcessEngineConfiguration().getClock().getCurrentTime());
     
     DbSqlSession dbSqlSession = commandContext.getDbSqlSession();
     dbSqlSession.insert(attachment);
@@ -79,6 +79,7 @@ public class CreateAttachmentCmd implements Command<Attachment> {
       byte[] bytes = IoUtil.readInputStream(content, attachmentName);
       ByteArrayEntity byteArray = ByteArrayEntity.createAndInsert(bytes);
       attachment.setContentId(byteArray.getId());
+      attachment.setContent(byteArray);
     }
 
     commandContext.getHistoryManager()
@@ -105,7 +106,7 @@ public class CreateAttachmentCmd implements Command<Attachment> {
 
   private void verifyParameters(CommandContext commandContext) {
     if (taskId != null) {
-      TaskEntity task = Context.getCommandContext().getTaskEntityManager().findTaskById(taskId);
+      TaskEntity task = commandContext.getTaskEntityManager().findTaskById(taskId);
 
       if (task == null) {
         throw new ActivitiObjectNotFoundException("Cannot find task with id " + taskId, Task.class);

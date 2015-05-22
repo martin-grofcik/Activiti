@@ -13,9 +13,6 @@
 
 package org.activiti.engine.test.bpmn.event.signal;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,7 +28,6 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.test.Deployment;
 import org.activiti.validation.validator.Problems;
-import org.junit.Test;
 
 
 /**
@@ -570,6 +566,52 @@ public class SignalEventTest extends PluggableActivitiTestCase {
 		task = taskService.createTaskQuery().singleResult();
 		
 		assertEquals("usertask2", task.getTaskDefinitionKey());
+	}
+	
+	/**
+	 * Test case for http://jira.codehaus.org/browse/ACT-1978
+	 */
+	public void testSignalDeleteOnRedeploy() {
+		
+		// Deploy test processes
+  	repositoryService.createDeployment()
+  		.addClasspathResource("org/activiti/engine/test/bpmn/event/signal/SignalEventTest.testSignalStartEvent.bpmn20.xml")
+  		.deploy();
+  	
+  	// Deploy new versions
+  	repositoryService.createDeployment()
+			.addClasspathResource("org/activiti/engine/test/bpmn/event/signal/SignalEventTest.testSignalStartEvent.bpmn20.xml")
+			.deploy();
+   	repositoryService.createDeployment()
+   		.addClasspathResource("org/activiti/engine/test/bpmn/event/signal/SignalEventTest.testSignalStartEvent.bpmn20.xml")
+   		.deploy();
+  	
+  	// Firing a signal start event should only start ONE process instance
+  	// This used to be two, due to subscriptions not being cleaned up
+  	runtimeService.signalEventReceived("The Signal");
+  	assertEquals(3, runtimeService.createProcessInstanceQuery().count());
+  	
+  	// Cleanup
+  	for (org.activiti.engine.repository.Deployment deployment : repositoryService.createDeploymentQuery().list()) {
+  		repositoryService.deleteDeployment(deployment.getId(), true);
+  	}
+	}
+	
+	@Deployment
+	public void testSignalWaitOnUserTaskBoundaryEvent() {
+	  ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("signal-wait");
+	  Execution execution = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId())
+	      .signalEventSubscriptionName("waitsig")
+	      .singleResult();
+	  assertNotNull(execution);
+	  runtimeService.signalEventReceived("waitsig", execution.getId());
+	  execution = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId())
+        .signalEventSubscriptionName("waitsig")
+        .singleResult();
+	  assertNull(execution);
+	  Task task = taskService.createTaskQuery().processInstanceId(processInstance.getId()).singleResult();
+	  assertNotNull(task);
+	  assertEquals("Wait2", task.getName());
 	}
 
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.activiti.bpmn.constants.BpmnXMLConstants;
 import org.activiti.bpmn.converter.BpmnXMLConverter;
+import org.activiti.bpmn.exceptions.XMLException;
 import org.activiti.bpmn.model.BoundaryEvent;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.Event;
@@ -194,7 +195,7 @@ public class BpmnParse implements BpmnXMLConstants {
       		LOGGER.warn("Process should be validated, but no process validator is configured on the process engine configuration!");
       	} else {
       		List<ValidationError> validationErrors = processValidator.validate(bpmnModel);
-      		if(validationErrors != null && validationErrors.size() > 0) {
+      		if(validationErrors != null && !validationErrors.isEmpty()) {
       			
       			StringBuilder warningBuilder = new StringBuilder();
 	      		StringBuilder errorBuilder = new StringBuilder();
@@ -229,9 +230,12 @@ public class BpmnParse implements BpmnXMLConstants {
       createMessages();
       createOperations();
       transformProcessDefinitions();
+      
     } catch (Exception e) {
       if (e instanceof ActivitiException) {
         throw (ActivitiException) e;
+      } else if (e instanceof XMLException) {
+        throw (XMLException) e;
       } else {
         throw new ActivitiException("Error parsing XML", e);
       }
@@ -396,7 +400,7 @@ public class BpmnParse implements BpmnXMLConstants {
       }
     }
 
-    if (processDefinitions.size() > 0) {
+    if (!processDefinitions.isEmpty()) {
       processDI();
     }
   }
@@ -451,14 +455,17 @@ public class BpmnParse implements BpmnXMLConstants {
   // /////////////////////////////////////////////////////////////////
 
   public void processDI() {
-    if (bpmnModel.getLocationMap().size() > 0) {
+    if (!bpmnModel.getLocationMap().isEmpty()) {
 
       // Verify if all referenced elements exist
       for (String bpmnReference : bpmnModel.getLocationMap().keySet()) {
         if (bpmnModel.getFlowElement(bpmnReference) == null) {
         	// ACT-1625: don't warn when	artifacts are referenced from DI
-        	if(bpmnModel.getArtifact(bpmnReference) == null) {
-        		LOGGER.warn("Invalid reference in diagram interchange definition: could not find " + bpmnReference);
+        	if (bpmnModel.getArtifact(bpmnReference) == null) {
+        	  // check if it's a Pool or Lane, then DI is ok
+            if (bpmnModel.getPool(bpmnReference) == null && bpmnModel.getLane(bpmnReference) == null) {
+              LOGGER.warn("Invalid reference in diagram interchange definition: could not find " + bpmnReference);
+            }
         	}
         } else if (! (bpmnModel.getFlowElement(bpmnReference) instanceof FlowNode)) {
           LOGGER.warn("Invalid reference in diagram interchange definition: " + bpmnReference + " does not reference a flow node");
@@ -467,15 +474,11 @@ public class BpmnParse implements BpmnXMLConstants {
       for (String bpmnReference : bpmnModel.getFlowLocationMap().keySet()) {
         if (bpmnModel.getFlowElement(bpmnReference) == null) {
           // ACT-1625: don't warn when	artifacts are referenced from DI
-        	if(bpmnModel.getArtifact(bpmnReference) == null) {
+        	if (bpmnModel.getArtifact(bpmnReference) == null) {
         		LOGGER.warn("Invalid reference in diagram interchange definition: could not find " + bpmnReference);
         	}	
         } else if (! (bpmnModel.getFlowElement(bpmnReference) instanceof SequenceFlow)) {
-          if (bpmnModel.getFlowLocationMap().get(bpmnReference).size() > 0) {
-            LOGGER.warn("Invalid reference in diagram interchange definition: " + bpmnReference + " does not reference a sequence flow");
-          } else {
-            LOGGER.warn("Invalid reference in diagram interchange definition: " + bpmnReference + " does not reference a sequence flow");
-          }
+          LOGGER.warn("Invalid reference in diagram interchange definition: " + bpmnReference + " does not reference a sequence flow");
         }
       }
       
@@ -539,12 +542,6 @@ public class BpmnParse implements BpmnXMLConstants {
     } else if (bpmnModel.getArtifact(key) != null) {
       // it's an association, so nothing to do
     } else {
-      GraphicInfo graphicInfo = null;
-      if (graphicList != null && graphicList.size() > 0) {
-        graphicInfo = graphicList.get(0);
-      } else {
-        graphicInfo = new GraphicInfo();
-      }
       LOGGER.warn("Invalid reference in 'bpmnElement' attribute, sequenceFlow " + key + " not found");
     }
   }

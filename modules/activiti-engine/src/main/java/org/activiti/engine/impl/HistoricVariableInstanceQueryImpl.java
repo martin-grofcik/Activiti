@@ -23,6 +23,7 @@ import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.interceptor.CommandExecutor;
 import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.activiti.engine.impl.variable.CacheableVariable;
+import org.activiti.engine.impl.variable.JPAEntityListVariableType;
 import org.activiti.engine.impl.variable.JPAEntityVariableType;
 import org.activiti.engine.impl.variable.VariableTypes;
 
@@ -35,6 +36,7 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
   private static final long serialVersionUID = 1L;
   protected String id;
   protected String taskId;
+  protected String executionId;
   protected String processInstanceId;
   protected String activityInstanceId;
   protected String variableName;
@@ -64,6 +66,14 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
       throw new ActivitiIllegalArgumentException("processInstanceId is null");
     }
     this.processInstanceId = processInstanceId;
+    return this;
+  }
+
+  public HistoricVariableInstanceQueryImpl executionId(String executionId) {
+    if (executionId == null) {
+      throw new ActivitiIllegalArgumentException("Execution id is null");
+    }
+    this.executionId = executionId;
     return this;
   }
 
@@ -156,7 +166,7 @@ public class HistoricVariableInstanceQueryImpl extends AbstractQuery<HistoricVar
             variableEntity.getValue();
             
             // make sure JPA entities are cached for later retrieval
-            if (JPAEntityVariableType.TYPE_NAME.equals(variableEntity.getVariableType().getTypeName())) {
+            if (JPAEntityVariableType.TYPE_NAME.equals(variableEntity.getVariableType().getTypeName()) || JPAEntityListVariableType.TYPE_NAME.equals(variableEntity.getVariableType().getTypeName())) {
               ((CacheableVariable) variableEntity.getVariableType()).setForceCacheable(true);
             }
           }

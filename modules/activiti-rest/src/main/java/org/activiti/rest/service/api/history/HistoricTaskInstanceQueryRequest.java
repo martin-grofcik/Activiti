@@ -18,8 +18,9 @@ import java.util.List;
 
 import org.activiti.rest.common.api.PaginateRequest;
 import org.activiti.rest.service.api.engine.variable.QueryVariable;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.annotate.JsonTypeInfo.Id;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 
 /**
@@ -73,6 +74,7 @@ public class HistoricTaskInstanceQueryRequest extends PaginateRequest {
   private String tenantId;
   private String tenantIdLike;
   private Boolean withoutTenantId;
+  private String taskCandidateGroup;
 
   public String getTaskId() {
     return taskId;
@@ -443,4 +445,13 @@ public class HistoricTaskInstanceQueryRequest extends PaginateRequest {
 	public void setWithoutTenantId(Boolean withoutTenantId) {
 		this.withoutTenantId = withoutTenantId;
 	}
+
+  public String getTaskCandidateGroup() {
+    return taskCandidateGroup;
+  }
+
+  public void setTaskCandidateGroup(String taskCandidateGroup) {
+    this.taskCandidateGroup = taskCandidateGroup;
+  }
+
 }

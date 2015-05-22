@@ -12,16 +12,18 @@
  */
 package org.activiti.engine.runtime;
 
-import java.io.Serializable;
-import java.util.Set;
-
 import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.query.Query;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Allows programmatic querying of {@link ProcessInstance}s.
  * 
  * @author Joram Barrez
+ * @author Tijs Rademakers
  * @author Frederik Heremans
  * @author Falko Menge
  */
@@ -64,10 +66,33 @@ public interface ProcessInstanceQuery extends Query<ProcessInstanceQuery, Proces
   ProcessInstanceQuery processDefinitionKey(String processDefinitionKey);
 
   /**
+   * Select the process instances which are defined by process definitions with
+   * the given keys.
+   */
+  ProcessInstanceQuery processDefinitionKeys(Set<String> processDefinitionKeys);
+
+  /**
    * Select the process instances which are defined by a process definition
    * with the given id.
    */
   ProcessInstanceQuery processDefinitionId(String processDefinitionId);
+
+  /**
+   * Select the process instances which are defined by process definitions
+   * with the given ids.
+   */
+  ProcessInstanceQuery processDefinitionIds(Set<String> processDefinitionIds);
+  
+  /**
+   * Select the process instances which are defined by a deployment
+   * with the given id.
+   */
+  ProcessInstanceQuery deploymentId(String deploymentId);
+  
+  /**
+   * Select the process instances which are defined by one of the given deployment ids
+   */
+  ProcessInstanceQuery deploymentIdIn(List<String> deploymentIds);
 
   /**
    * Select the process instances which are a sub process instance of the given
@@ -207,9 +232,35 @@ public interface ProcessInstanceQuery extends Query<ProcessInstanceQuery, Proces
   ProcessInstanceQuery active();
   
   /**
+   * Only select process instances with the given name.
+   */
+  ProcessInstanceQuery processInstanceName(String name);
+  
+  /**
+   * Only select process instances with a name like the given value. 
+   */
+  ProcessInstanceQuery processInstanceNameLike(String nameLike);
+  
+  /**
+   * Only select process instances with a name like the given value, ignoring upper/lower case.
+   */
+  ProcessInstanceQuery processInstanceNameLikeIgnoreCase(String nameLikeIgnoreCase);
+  
+  /**
    * Include process variables in the process query result
    */
   ProcessInstanceQuery includeProcessVariables();
+  
+  /**
+   * Begin an OR statement. Make sure you invoke the endOr method at the end of your OR statement.
+   * Only one OR statement is allowed, for the second call to this method an exception will be thrown.
+   */
+  ProcessInstanceQuery or();
+  
+  /**
+   * End an OR statement. Only one OR statement is allowed, for the second call to this method an exception will be thrown.
+   */
+  ProcessInstanceQuery endOr();
   
   //ordering /////////////////////////////////////////////////////////////////
   

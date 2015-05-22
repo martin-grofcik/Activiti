@@ -159,7 +159,11 @@
     select * 
     from ${prefix}ACT_RU_EVENT_SUBSCR
     where (EVENT_TYPE_ = #{parameter.eventType})
-    	and (CONFIGURATION_ = #{parameter.configuration})
+    	and ( 
+    	   (CONFIGURATION_ = #{parameter.configuration})
+    	   or
+    	   (PROC_DEF_ID_ = #{parameter.configuration})
+    	)
      <if test="parameter.tenantId != null">
         and TENANT_ID_ = #{parameter.tenantId}
     </if>  
@@ -247,7 +251,7 @@
        CONFIGURATION_ = #{configuration, jdbcType=VARCHAR},  
        CREATED_ = #{created, jdbcType=TIMESTAMP},
        PROC_DEF_ID_ = #{processDefinitionId, jdbcType=VARCHAR},
-       TENANT_ID_ = #{tenantId, jdbcType-VARCHAR}
+       TENANT_ID_ = #{tenantId, jdbcType=VARCHAR}
     </set>
     where ID_= #{id, jdbcType=VARCHAR}
       and REV_ = #{revision, jdbcType=INTEGER}

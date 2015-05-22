@@ -13,9 +13,18 @@
 
 package org.activiti.camel;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.activiti.engine.IdentityService;
 import org.activiti.engine.RuntimeService;
-import org.apache.camel.*;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Consumer;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
 import org.apache.camel.impl.DefaultEndpoint;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class has been modified to be consistent with the changes to CamelBehavior and its implementations. The set of changes
@@ -23,43 +32,40 @@ import org.apache.camel.impl.DefaultEndpoint;
  * or you can choose to create your own. Please reference the comments for the "CamelBehavior" class for more information on the 
  * out-of-the-box implementation class options.  
  * 
- * @author Ryan Johnston (@rjfsu), Tijs Rademakers
+ * @author Ryan Johnston (@rjfsu), Tijs Rademakers, Arnold Schrijver
  */
 public class ActivitiEndpoint extends DefaultEndpoint {
 
+  protected IdentityService identityService;
 
-  private RuntimeService runtimeService;
+  protected RuntimeService runtimeService;
 
-  private ActivitiConsumer activitiConsumer;
+  protected ActivitiConsumer activitiConsumer;
 
-  private boolean copyVariablesToProperties;
+  protected boolean copyVariablesToProperties;
 
-  private boolean copyVariablesToBodyAsMap;
+  protected boolean copyVariablesToBodyAsMap;
 
-  private boolean copyCamelBodyToBody;
+  protected boolean copyCamelBodyToBody;
   
-  private boolean copyVariablesFromProperties;
+  protected boolean copyVariablesFromProperties;
 
-  private boolean copyVariablesFromHeader;
+  protected boolean copyVariablesFromHeader;
   
-  private boolean copyCamelBodyToBodyAsString;
+  protected boolean copyCamelBodyToBodyAsString;
   
-  private long timeout = 5000;
+  protected String processInitiatorHeaderName;
   
-  private int timeResolution = 100;
+  protected Map<String, Object> returnVarMap = new HashMap<String, Object>();
+  
+  protected long timeout = 5000;
+  
+  protected int timeResolution = 100;
 
-  public ActivitiEndpoint(String uri, CamelContext camelContext, RuntimeService runtimeService) {
+  public ActivitiEndpoint(String uri, CamelContext camelContext) {
     super();
     setCamelContext(camelContext);
     setEndpointUri(uri);
-    this.runtimeService = runtimeService;
-  }
-
-  void addConsumer(ActivitiConsumer consumer) {
-    if (activitiConsumer != null) {
-      throw new RuntimeException("Activit consumer already defined for " + getEndpointUri() + "!");
-    }
-    activitiConsumer = consumer;
   }
 
   public void process(Exchange ex) throws Exception {
@@ -70,15 +76,37 @@ public class ActivitiEndpoint extends DefaultEndpoint {
   }
 
   public Producer createProducer() throws Exception {
-    return new ActivitiProducer(this, runtimeService, getTimeout(), getTimeResolution());
+    ActivitiProducer producer = new ActivitiProducer(this, getTimeout(), getTimeResolution());
+    producer.setRuntimeService(runtimeService);
+    producer.setIdentityService(identityService);
+    return producer;
   }
 
   public Consumer createConsumer(Processor processor) throws Exception {
     return new ActivitiConsumer(this, processor);
   }
+  
+  protected void addConsumer(ActivitiConsumer consumer) {
+    if (activitiConsumer != null) {
+      throw new RuntimeException("Activiti consumer already defined for " + getEndpointUri() + "!");
+    }
+    activitiConsumer = consumer;
+  }
+  
+  protected void removeConsumer() {
+    activitiConsumer = null;
+  }
 
   public boolean isSingleton() {
     return true;
+  }
+  
+  public void setIdentityService(IdentityService identityService) {
+    this.identityService = identityService;
+  }
+
+  public void setRuntimeService(RuntimeService runtimeService) {
+    this.runtimeService = runtimeService;
   }
 
   public boolean isCopyVariablesToProperties() {
@@ -127,6 +155,26 @@ public class ActivitiEndpoint extends DefaultEndpoint {
   
   public void setCopyCamelBodyToBodyAsString(boolean copyCamelBodyToBodyAsString) {
     this.copyCamelBodyToBodyAsString = copyCamelBodyToBodyAsString;
+  }
+  
+  public boolean isSetProcessInitiator() {
+      return StringUtils.isNotEmpty(getProcessInitiatorHeaderName());
+  }
+  
+  public Map<String, Object> getReturnVarMap() {
+    return returnVarMap;
+  }
+
+  public void setReturnVarMap(Map<String, Object> returnVarMap) {
+    this.returnVarMap = returnVarMap;
+  }
+  
+  public String getProcessInitiatorHeaderName() {
+      return processInitiatorHeaderName;
+  }
+  
+  public void setProcessInitiatorHeaderName(String processInitiatorHeaderName) {
+      this.processInitiatorHeaderName = processInitiatorHeaderName;
   }
   
   @Override

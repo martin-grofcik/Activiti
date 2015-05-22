@@ -6,7 +6,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.activiti.engine.ActivitiIllegalArgumentException;
-import org.activiti.engine.impl.calendar.CycleBusinessCalendar;
 import org.activiti.engine.runtime.ClockReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +86,7 @@ public class AdvancedCycleBusinessCalendar extends CycleBusinessCalendar {
   }
 
   @Override
-  public Date resolveDuedate(String duedateDescription) {
+  public Date resolveDuedate(String duedateDescription, int maxIterations) {
     logger.info("Resolving Due Date: " + duedateDescription);
 
     String timeZone = getValueFrom("DSTZONE", duedateDescription);

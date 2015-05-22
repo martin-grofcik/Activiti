@@ -67,6 +67,9 @@ public class ServiceTaskXMLConverter extends BaseBpmnXMLConverter {
 		serviceTask.setType(xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TYPE));
 		serviceTask.setExtensionId(xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_SERVICE_EXTENSIONID));
 	
+		if (StringUtils.isNotEmpty(xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_SERVICE_SKIP_EXPRESSION))) {
+		  serviceTask.setSkipExpression(xtr.getAttributeValue(ACTIVITI_EXTENSIONS_NAMESPACE, ATTRIBUTE_TASK_SERVICE_SKIP_EXPRESSION));
+		}
 		parseChildElements(getXMLElementName(), serviceTask, model, xtr);
 		
 		return serviceTask;
@@ -94,13 +97,16 @@ public class ServiceTaskXMLConverter extends BaseBpmnXMLConverter {
     if (StringUtils.isNotEmpty(serviceTask.getExtensionId())) {
       writeQualifiedAttribute(ATTRIBUTE_TASK_SERVICE_EXTENSIONID, serviceTask.getExtensionId(), xtw);
     }
+    if (StringUtils.isNotEmpty(serviceTask.getSkipExpression())) {
+      writeQualifiedAttribute(ATTRIBUTE_TASK_SERVICE_SKIP_EXPRESSION, serviceTask.getSkipExpression(), xtw);
+    }
   }
   
   @Override
   protected boolean writeExtensionChildElements(BaseElement element, boolean didWriteExtensionStartElement, XMLStreamWriter xtw) throws Exception {
     ServiceTask serviceTask = (ServiceTask) element;
     
-    if (serviceTask.getCustomProperties().size() > 0) {
+    if (!serviceTask.getCustomProperties().isEmpty()) {
       for (CustomProperty customProperty : serviceTask.getCustomProperties()) {
         
         if (StringUtils.isEmpty(customProperty.getSimpleValue())) {

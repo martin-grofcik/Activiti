@@ -16,6 +16,7 @@ package org.activiti.engine.test.bpmn.multiinstance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1105,6 +1106,114 @@ public class MultiInstanceTest extends PluggableActivitiTestCase {
     assertEquals(0, processInstances.size());
     assertProcessEnded(processInstance.getId());
   }
+
+  @Deployment(resources = { "org/activiti/engine/test/bpmn/multiinstance/MultiInstanceTest.testSequentialEmptyCollection.bpmn20.xml" })
+  public void testSequentialEmptyCollection() {
+    Collection<String> collection = Collections.emptyList();
+    Map<String, Object> variableMap = new HashMap<String, Object>();
+    variableMap.put("collection", collection);
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testSequentialEmptyCollection", variableMap);
+    assertNotNull(processInstance);
+    Task task = taskService.createTaskQuery().singleResult();
+    assertNull(task);
+    assertProcessEnded(processInstance.getId());
+  }
+
+  @Deployment(resources = { "org/activiti/engine/test/bpmn/multiinstance/MultiInstanceTest.testSequentialEmptyCollection.bpmn20.xml" })
+  public void testSequentialEmptyCollectionWithNonEmptyCollection() {
+    Collection<String> collection = Collections.singleton("Test");
+    Map<String, Object> variableMap = new HashMap<String, Object>();
+    variableMap.put("collection", collection);
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testSequentialEmptyCollection", variableMap);
+    assertNotNull(processInstance);
+    Task task = taskService.createTaskQuery().singleResult();
+    assertNotNull(task);
+    taskService.complete(task.getId());
+    assertProcessEnded(processInstance.getId());
+  }
+
+  @Deployment(resources = { "org/activiti/engine/test/bpmn/multiinstance/MultiInstanceTest.testParallelEmptyCollection.bpmn20.xml" })
+  public void testParalellEmptyCollection() throws Exception {
+    Collection<String> collection = Collections.emptyList();
+    Map<String, Object> variableMap = new HashMap<String, Object>();
+    variableMap.put("collection", collection);
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testParalellEmptyCollection", variableMap);
+    assertNotNull(processInstance);
+    Task task = taskService.createTaskQuery().singleResult();
+    assertNull(task);
+    assertProcessEnded(processInstance.getId());
+  }
+
+  @Deployment(resources = { "org/activiti/engine/test/bpmn/multiinstance/MultiInstanceTest.testParallelEmptyCollection.bpmn20.xml" })
+  public void testParalellEmptyCollectionWithNonEmptyCollection() {
+    Collection<String> collection = Collections.singleton("Test");
+    Map<String, Object> variableMap = new HashMap<String, Object>();
+    variableMap.put("collection", collection);
+    ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("testParalellEmptyCollection", variableMap);
+    assertNotNull(processInstance);
+    Task task = taskService.createTaskQuery().singleResult();
+    assertNotNull(task);
+    taskService.complete(task.getId());
+    assertProcessEnded(processInstance.getId());
+  }
   
+  @Deployment
+  public void testInfiniteLoopWithDelegateExpressionFix() {
+  	
+  	// Add bean temporary to process engine
+  	
+  	Map<Object, Object> originalBeans = processEngineConfiguration.getExpressionManager().getBeans();
+  	
+  	try {
+  		
+  		Map<Object, Object> newBeans = new HashMap<Object, Object>();
+  		newBeans.put("SampleTask", new TestSampleServiceTask());
+  		processEngineConfiguration.getExpressionManager().setBeans(newBeans);
+  	
+	  	 Map<String, Object> params = new HashMap<String, Object>();
+	     params.put("sampleValues", Arrays.asList("eins", "zwei", "drei"));
+	     ProcessInstance processInstance = runtimeService.startProcessInstanceByKey("infiniteLoopTest", params);
+	     assertNotNull(processInstance);
+	     
+  	} finally {
+  		
+  		// Put beans back
+  		processEngineConfiguration.getExpressionManager().setBeans(originalBeans);
+  		
+  	}
+  }
   
+  @Deployment
+  public void testEmptyCollectionOnParallelUserTask() {
+  	if(processEngineConfiguration.getHistoryLevel().isAtLeast(HistoryLevel.AUDIT)) {
+	  	Map<String, Object> vars = new HashMap<String, Object>();
+	    vars.put("messages", Collections.EMPTY_LIST);
+	    runtimeService.startProcessInstanceByKey("parallelUserTaskMi", vars);
+	    
+	    assertEquals(1L, historyService.createHistoricProcessInstanceQuery().finished().count());
+  	}
+  }
+  
+  @Deployment
+  public void testEmptyCollectionOnSequentialEmbeddedSubprocess() {
+  	if(processEngineConfiguration.getHistoryLevel().isAtLeast(HistoryLevel.AUDIT)) {
+	  	Map<String, Object> vars = new HashMap<String, Object>();
+	    vars.put("messages", Collections.EMPTY_LIST);
+	    runtimeService.startProcessInstanceByKey("sequentialMiSubprocess", vars);
+	    
+	    assertEquals(1L, historyService.createHistoricProcessInstanceQuery().finished().count());
+  	}
+  }
+  
+  @Deployment
+  public void testEmptyCollectionOnParallelEmbeddedSubprocess() {
+  	if(processEngineConfiguration.getHistoryLevel().isAtLeast(HistoryLevel.AUDIT)) {
+	  	Map<String, Object> vars = new HashMap<String, Object>();
+	    vars.put("messages", Collections.EMPTY_LIST);
+	    runtimeService.startProcessInstanceByKey("parallelMiSubprocess", vars);
+	    
+	    assertEquals(1L, historyService.createHistoricProcessInstanceQuery().finished().count());
+  	}
+  }
+
 }
