@@ -94,7 +94,7 @@ public class JobEntityManager extends AbstractManager {
     asyncExecutor.executeAsyncJob(job);
   }
   
-  protected void hintAsyncExecutor(JobEntity job) {  
+  public void hintAsyncExecutor(JobEntity job) {
     AsyncExecutor asyncExecutor = Context.getProcessEngineConfiguration().getAsyncExecutor();
 
     // notify job executor:      
