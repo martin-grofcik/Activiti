@@ -46,7 +46,7 @@ public class DefaultBusinessCalendar implements BusinessCalendar {
     units.put("years", Calendar.YEAR);
   }
   
-  public Date resolveDuedate(String duedate) {
+  public Date resolveDuedate(String duedate, int maxIterations) {
     Date resolvedDuedate = Context.getProcessEngineConfiguration().getClock().getCurrentTime();
     
     String[] tokens = duedate.split(" and ");
@@ -78,5 +78,10 @@ public class DefaultBusinessCalendar implements BusinessCalendar {
     calendar.add(unit, quantity);
     
     return calendar.getTime();
+  }
+
+  @Override
+  public Date resolveDuedate(String duedateDescription) {
+    return resolveDuedate(duedateDescription, -1);
   }
 }

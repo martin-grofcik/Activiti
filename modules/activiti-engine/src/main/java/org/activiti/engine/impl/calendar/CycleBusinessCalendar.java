@@ -25,10 +25,10 @@ public class CycleBusinessCalendar extends BusinessCalendarImpl {
     super(clockReader);
   }
 
-  public Date resolveDuedate(String duedateDescription) {
+  public Date resolveDuedate(String duedateDescription, int maxIterations) {
     try {
-      if (duedateDescription.startsWith("R")) {
-        return new DurationHelper(duedateDescription, clockReader).getDateAfter();
+      if (duedateDescription != null && duedateDescription.startsWith("R")) {
+        return new DurationHelper(duedateDescription, maxIterations, clockReader).getDateAfter();
       } else {
         CronExpression ce = new CronExpression(duedateDescription, clockReader);
         return ce.getTimeAfter(clockReader.getCurrentTime());
@@ -37,7 +37,6 @@ public class CycleBusinessCalendar extends BusinessCalendarImpl {
     } catch (Exception e) {
       throw new ActivitiException("Failed to parse cron expression: " + duedateDescription, e);
     }
-
   }
 
 }

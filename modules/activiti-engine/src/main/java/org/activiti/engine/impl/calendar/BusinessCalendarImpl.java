@@ -16,5 +16,10 @@ public abstract class BusinessCalendarImpl implements BusinessCalendar {
   }
 
   @Override
-  public abstract Date resolveDuedate(String duedateDescription);
+  public Date resolveDuedate(String duedateDescription) {
+    return resolveDuedate(duedateDescription, -1);
+  }
+
+  public abstract Date resolveDuedate(String duedateDescription, int maxIterations);
+
 }
