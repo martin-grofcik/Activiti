@@ -72,7 +72,6 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     assertEquals(0, jobQuery.count());
   }
 
-  // FIXME: This test likes to run in an endless loop when invoking the waitForJobExecutorOnCondition method
   @Deployment
   public void testCycleDateStartTimerEvent() throws Exception {
     processEngineConfiguration.getClock().setCurrentTime(new Date());
@@ -95,8 +94,8 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     moveByMinutes(5);
     waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
       public Boolean call() throws Exception {
-        return 2 ==  piq.count();
-      }      
+        return 2 == piq.count();
+      }
     });
     
     assertEquals(1, jobQuery.count());
@@ -116,14 +115,50 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     // After process start, there should be timer created
     JobQuery jobQuery = managementService.createJobQuery();
     assertEquals(1, jobQuery.count());
-    
-    moveByMinutes(6);
-    managementService.executeJob(managementService.createJobQuery().singleResult().getId());
-    assertEquals(1, jobQuery.count());
 
-    moveByMinutes(6);
-    managementService.executeJob(managementService.createJobQuery().singleResult().getId());
-    assertEquals(0, jobQuery.count());
+    final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
+
+    moveByMinutes(5);
+    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        return 1 == piq.count();
+      }
+    });
+
+    moveByMinutes(5);
+    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        return 2 == piq.count();
+      }
+    });
+  }
+
+  @Deployment(resources = {"org/activiti/engine/test/bpmn/event/timer/StartTimerEventTest.testCycleWithLimitStartTimerEvent.bpmn20.xml"})
+  public void testCycleWithLimitStartTimerEvent_failing() throws Exception {
+    processEngineConfiguration.getClock().setCurrentTime(new Date());
+
+    final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
+
+    moveByMinutes(15);
+    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        return 1 == piq.count();
+      }
+    });
+
+    moveByMinutes(1);
+    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        return 1 == piq.count();
+      }
+    });
+
+    moveByMinutes(4);
+    waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
+      public Boolean call() throws Exception {
+        return 2 == piq.count();
+      }
+    });
 
   }
   
