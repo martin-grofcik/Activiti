@@ -134,14 +134,16 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
   }
 
   @Deployment(resources = {"org/activiti/engine/test/bpmn/event/timer/StartTimerEventTest.testCycleWithLimitStartTimerEvent.bpmn20.xml"})
-  public void testCycleWithLimitStartTimerEvent_failing() throws Exception {
+  public void testCycleWithLimitStartTimerEvent_keepTimerPeriod() throws Exception {
     processEngineConfiguration.getClock().setCurrentTime(new Date());
 
     final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
 
+    // move to 15 mins forward - e.g. server was down and it was started again
     moveByMinutes(15);
     waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
       public Boolean call() throws Exception {
+        // one process instance should be started - because time is after start date
         return 1 == piq.count();
       }
     });
@@ -149,19 +151,22 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
     moveByMinutes(1);
     waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
       public Boolean call() throws Exception {
+        // we have moved the time 1 minute forward. Process start period is 5 mins. => No other process instance
+        // should be started
+        // @FIXME: 5.18-SNAPSHOT - there are 2 process instancess running because of org.activiti.engine.impl.calendar.DurationHelper.getDateAfterRepeat
         return 1 == piq.count();
       }
     });
 
+    // +4 mins -> new process instance should be started because time period was reached since the last timer execution
     moveByMinutes(4);
     waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
       public Boolean call() throws Exception {
         return 2 == piq.count();
       }
     });
-
   }
-  
+
   @Deployment
   public void testExpressionStartTimerEvent() throws Exception {
     // ACT-1415: fixed start-date is an expression
