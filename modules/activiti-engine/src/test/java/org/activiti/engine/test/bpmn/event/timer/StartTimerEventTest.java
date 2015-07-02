@@ -27,11 +27,15 @@ import org.activiti.engine.runtime.JobQuery;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.test.Deployment;
+import org.apache.log4j.spi.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * @author Joram Barrez
  */
 public class StartTimerEventTest extends PluggableActivitiTestCase {
+
+  private static final Logger log = org.slf4j.LoggerFactory.getLogger(StartTimerEventTest.class);
 
   @Deployment
   public void testDurationStartTimerEvent() throws Exception {
@@ -105,7 +109,11 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
 
   
   private void moveByMinutes(int minutes) throws Exception {
-    processEngineConfiguration.getClock().setCurrentTime(new Date(processEngineConfiguration.getClock().getCurrentTime().getTime() + ((minutes * 60 * 1000) + 5000)));
+    moveBySeconds(minutes * 60);
+  }
+
+  private void moveBySeconds(int seconds) throws Exception {
+    processEngineConfiguration.getClock().setCurrentTime(new Date(processEngineConfiguration.getClock().getCurrentTime().getTime() + ((seconds * 1000) + 5000)));
   }
 
   @Deployment
@@ -139,8 +147,8 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
 
     final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
 
-    // move to 15 mins forward - e.g. server was down and it was started again
-    moveByMinutes(15);
+    // move to 6 mins forward - e.g. server was down and it was started again
+    moveByMinutes(6);
     waitForJobExecutorOnCondition(10000, 500, new Callable<Boolean>() {
       public Boolean call() throws Exception {
         // one process instance should be started - because time is after start date
@@ -165,6 +173,32 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
         return 2 == piq.count();
       }
     });
+  }
+
+  @Deployment(resources = {"org/activiti/engine/test/bpmn/event/timer/StartTimerEventTest.testCycleWithLimitStartTimerEvent_keepPeriod.bpmn20.xml"})
+  public void testCycleWithLimitStartTimerEvent_keepPeriod() throws Exception {
+    processEngineConfiguration.getClock().setCurrentTime(new Date());
+
+    // <timeCycle>R20/PT1M</timeCycle>
+    final ProcessInstanceQuery piq = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExampleCycle");
+
+    for (int i = 0; i < 5; i++) {
+      moveBySeconds(64);      // it can easily happen that jobExecutor is invoked some time after the scheduled date
+      final int iter = i + 1;
+      waitForJobExecutorOnCondition(5000, 500, new Callable<Boolean>() {
+        public Boolean call() throws Exception {
+          return iter == piq.count(); // started processes must reflect iteration
+        }
+      });
+      // when we move in time 1 seconds forward (it is still less than 1 minute period) no new process instance should be started
+      // because period in the process definition is 1M.
+      moveBySeconds(1);
+      waitForJobExecutorOnCondition(5000, 500, new Callable<Boolean>() {
+        public Boolean call() throws Exception {
+          return iter == piq.count();
+        }
+      });
+    }
   }
 
   @Deployment
@@ -203,13 +237,13 @@ public class StartTimerEventTest extends PluggableActivitiTestCase {
       public Boolean call() throws Exception {
         //we check that correct version was started
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processDefinitionKey("startTimerEventExample").singleResult();
-        if(processInstance != null) {
-          String pi = processInstance.getProcessInstanceId();        
+        if (processInstance != null) {
+          String pi = processInstance.getProcessInstanceId();
           return "changed".equals(runtimeService.getActiveActivityIds(pi).get(0));
-        }else {
+        } else {
           return false;
         }
-      }      
+      }
     });
     assertEquals(1, jobQuery.count());
 
