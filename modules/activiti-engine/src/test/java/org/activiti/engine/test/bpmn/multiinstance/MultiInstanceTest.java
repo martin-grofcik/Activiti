@@ -40,6 +40,9 @@ import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.activiti.engine.test.Deployment;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 
 /**
  * @author Joram Barrez
@@ -234,7 +237,7 @@ public class MultiInstanceTest extends PluggableActivitiTestCase {
   public void testParallelUserTasksBasedOnCollection() {
     List<String> assigneeList = Arrays.asList("kermit", "gonzo", "mispiggy", "fozzie", "bubba");
     String procId = runtimeService.startProcessInstanceByKey("miParallelUserTasksBasedOnCollection",
-          CollectionUtil.singletonMap("assigneeList", assigneeList)).getId();
+            CollectionUtil.singletonMap("assigneeList", assigneeList)).getId();
     
     List<Task> tasks = taskService.createTaskQuery().orderByTaskAssignee().asc().list();
     assertEquals(5, tasks.size());
@@ -531,7 +534,19 @@ public class MultiInstanceTest extends PluggableActivitiTestCase {
     
     assertProcessEnded(procId);
   }
-  
+
+  @Deployment
+  public void testNestedParallelParentSubProcess() {
+    runtimeService.startProcessInstanceByKey("miNestedSequentialParentSubProcess").getId();
+
+    List<Execution> receiveTaskExecutions = runtimeService.createExecutionQuery().activityId("receiveTask").list();
+    assertThat(runtimeService.createExecutionQuery().activityId("receiveTask").count(), is(3L));
+
+    runtimeService.signal(receiveTaskExecutions.get(0).getId());
+
+    assertThat(runtimeService.createExecutionQuery().activityId("receiveTask").count(), is(2L));
+  }
+
   @Deployment
   public void testNestedSequentialSubProcessWithTimer() {
     String procId = runtimeService.startProcessInstanceByKey("miNestedSequentialSubProcessWithTimer").getId();
