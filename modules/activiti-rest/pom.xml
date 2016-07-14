@@ -10,7 +10,7 @@
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version>5.17.0.EDW.7</version>
+    <version>5.17.0.EDW.8</version>
   </parent>
 
   <properties>
@@ -19,7 +19,7 @@
       org.activiti.rest.service
     </activiti.artifact>
   </properties>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -180,7 +180,7 @@
       <version>4.3.5</version>
       <scope>test</scope>
     </dependency>
-    
+
     <!-- SPRING -->
     <dependency>
       <groupId>org.springframework</groupId>
@@ -222,14 +222,14 @@
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>org.eclipse.jetty.orbit</groupId>
       <artifactId>javax.servlet</artifactId>
       <version>3.0.0.v201112011016</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>

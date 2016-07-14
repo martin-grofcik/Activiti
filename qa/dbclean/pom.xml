@@ -8,7 +8,7 @@
   <artifactId>activiti-dbclean</artifactId>
 
   <packaging>pom</packaging>
-  <version>5.17.0.EDW.7</version>
+  <version>5.17.0.EDW.8</version>
 
   <dependencies>
     <dependency>
@@ -83,13 +83,13 @@
                 <echo message="loading properties from ${user.home}/.activiti/${cfgdir}/build.${database}.properties" />
                 <property file="${user.home}/.activiti/${cfgdir}/build.${database}.properties" />
                 <echo message="cleaning db ${jdbc.url}" />
-                <sql driver="${jdbc.driver}" 
-                     password="${jdbc.password}" 
-                     url="${jdbc.url}" 
+                <sql driver="${jdbc.driver}"
+                     password="${jdbc.password}"
+                     url="${jdbc.url}"
                      userid="${jdbc.username}"
                      onerror="continue"
                      autocommit="true"
-                     classpathref="maven.test.classpath" 
+                     classpathref="maven.test.classpath"
                      src="scripts/drop.activiti.${database}.sql"/>
               </tasks>
             </configuration>

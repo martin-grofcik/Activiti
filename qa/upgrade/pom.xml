@@ -6,13 +6,13 @@
   <name>Activiti - Upgrade Fetcher</name>
   <groupId>org.activiti</groupId>
   <artifactId>activiti-upgrade-fetcher</artifactId>
-  <version>5.17.0.EDW.7</version>
+  <version>5.17.0.EDW.8</version>
 
   <parent>
     <groupId>org.activiti</groupId>
     <artifactId>activiti-root</artifactId>
     <relativePath>../..</relativePath>
-    <version></version>5.17.0.EDW.7</version>
+    <version></version>5.17.0.EDW.8</version>
   </parent>
 
   <dependencies>
@@ -22,8 +22,8 @@
       <version>${activiti.upgrade.version}</version>
     </dependency>
   </dependencies>
-  
-  <profiles>    
+
+  <profiles>
     <profile>
       <id>oracle</id>
       <activation>
@@ -40,7 +40,7 @@
         </dependency>
       </dependencies>
     </profile>
-    
+
     <profile>
       <id>db2</id>
       <activation>
@@ -74,7 +74,7 @@
         </dependency>
       </dependencies>
     </profile>
-  
+
     <profile>
       <id>mysql</id>
       <activation>
@@ -106,5 +106,5 @@
       <url>https://maven.alfresco.com/nexus/content/repositories/activiti/</url>
     </repository>
   </repositories>
-  
+
 </project>
